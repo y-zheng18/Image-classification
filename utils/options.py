@@ -17,7 +17,7 @@ def get_args():
     parser.add_argument('--epoch', type=int, default=200)
     parser.add_argument('--epoch_resume', type=int, default=0)
     parser.add_argument('--lr', type=float, default=1e-1)
-    parser.add_argument('--lr_policy', type=str, default='cosine', choices=['cosine', 'multi-step'])
+    parser.add_argument('--lr_policy', type=str, default='multi-step', choices=['cosine', 'multi-step'])
     parser.add_argument('--lr_steps', type=int, default=[10, 40, 80], nargs='+')
     parser.add_argument('--lr_decay', type=float, default=0.2)
     parser.add_argument('--lr_tolerance', type=int, default=1)
