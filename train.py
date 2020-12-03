@@ -58,7 +58,8 @@ def train(opt):
         pred_list = []
         gt_list = []
         # it = 0
-        for img_batch, label_batch in tqdm(train_dataloader, ncols=100):
+        train_bar = tqdm(train_dataloader, ncols=100)
+        for img_batch, label_batch in train_bar:
             if use_gpu:
                 img_batch = img_batch.cuda()
                 label_batch = label_batch.cuda()
@@ -76,6 +77,7 @@ def train(opt):
             _, predicted_label = torch.max(outputs, dim=1)
             gt_list.append(label_batch.cpu().numpy())
             pred_list.append(predicted_label.cpu().numpy())
+            train_bar.set_description('epoch:{0:}, loss:{1:4f}'.format(epoch, loss))
         gt_list = np.concatenate(gt_list, axis=0)
         pred_list = np.concatenate(pred_list, axis=0)
         train_acc = np.sum(pred_list == gt_list) / len(gt_list)
@@ -169,7 +171,7 @@ def train_metrics(opt):
             _, predicted_label = torch.max(outputs, dim=1)
             gt_list.append(label_batch.cpu().numpy())
             pred_list.append(predicted_label.cpu().numpy())
-            train_bar.set_description('loss:{0:4f}, triplet:{1:4f}'.format(loss, triplet_loss))
+            train_bar.set_description('epoch:{0:}, loss:{1:4f}, triplet:{2:4f}'.format(epoch, loss, triplet_loss))
         gt_list = np.concatenate(gt_list, axis=0)
         pred_list = np.concatenate(pred_list, axis=0)
         train_acc = np.sum(pred_list == gt_list) / len(gt_list)
