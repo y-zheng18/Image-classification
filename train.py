@@ -182,8 +182,9 @@ def train_metrics(opt):
                 save_results(test_label_pred, opt.data_type, opt.result_path, '1_{}_triplet.csv'.format(opt.model))
             else:
                 save_results(test_label_pred, opt.data_type, opt.result_path, '2_{}_triplet.csv'.format(opt.model))
-        print('epoch:{0:}, lr:{1:6f}, loss:{2:4f}, train_acc:{3:4f}, test_acc:{4:4f}, best_acc:{5:4f}, best_epoch{6:}'.format(
-            epoch, optimizer.param_groups[0]['lr'], np.mean(loss_list), train_acc, acc, best_acc, best_epoch
+        print('epoch:{0:}, lr:{1:6f}, loss:{2:4f}, triplet:{3:4f}, train_acc:{4:4f}, test_acc:{5:4f}, best_acc:{6:4f}, best_epoch{7:}'.format(
+            epoch, optimizer.param_groups[0]['lr'], np.mean(loss_list), np.mean(triplet_loss_list),
+            train_acc, acc, best_acc, best_epoch
         ))
         # loss_list = np.array(loss_list)
         optim_lr_schedule.step()
