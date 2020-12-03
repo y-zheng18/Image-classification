@@ -85,6 +85,7 @@ class TripletLoss(torch.nn.Module):
             # anchor_adjacent[i, i] = -1
             pair_index = (labels == labels[i])
             adjacent[i, pair_index] = -1
+        print(adjacent, labels)
         negative_index = torch.argmax(adjacent, dim=1)  # hardest negative sample
         negative_feats = features[negative_index]
         return negative_feats

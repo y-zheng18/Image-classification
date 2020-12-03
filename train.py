@@ -58,7 +58,8 @@ def train(opt):
         pred_list = []
         gt_list = []
         # it = 0
-        for img_batch, label_batch in tqdm(train_dataloader, ncols=100):
+        train_bar = tqdm(train_dataloader, ncols=100)
+        for img_batch, label_batch in train_bar:
             if use_gpu:
                 img_batch = img_batch.cuda()
                 label_batch = label_batch.cuda()
@@ -76,6 +77,7 @@ def train(opt):
             _, predicted_label = torch.max(outputs, dim=1)
             gt_list.append(label_batch.cpu().numpy())
             pred_list.append(predicted_label.cpu().numpy())
+            train_bar.set_description('epoch:{0:}, loss:{1:4f}'.format(epoch, loss))
         gt_list = np.concatenate(gt_list, axis=0)
         pred_list = np.concatenate(pred_list, axis=0)
         train_acc = np.sum(pred_list == gt_list) / len(gt_list)
@@ -155,12 +157,16 @@ def train_metrics(opt):
             outputs, feats = model(img_batch, return_feats=True)
             outputs_p, feats_p = model(postive_batch, return_feats=True)
             loss = loss_function(outputs, label_batch) + loss_function(outputs_p, label_batch)
-            triplet_loss = discrimitive_loss(feats, feats_p, label_batch)
-            loss += triplet_loss * opt.lambda_triplet
+            triplet_loss = 0
+            if epoch > opt.triplet_warm_up:
+                triplet_loss = discrimitive_loss(feats, feats_p, label_batch)
+                loss += triplet_loss * opt.lambda_triplet
             loss.backward()
             optimizer.step()
             loss_list.append(loss.detach().cpu().numpy())
-            triplet_loss_list.append(triplet_loss.detach().cpu().numpy())
+            if epoch > opt.triplet_warm_up:
+                triplet_loss = triplet_loss.detach().cpu().numpy()
+            triplet_loss_list.append(triplet_loss)
             # if it % 10 == 0:
             #     print('epoch:{0:}, lr:{1:06f}, it:{2:}, loss:{3:04f}'.format(
             #         epoch, optimizer.param_groups[0]['lr'], it, loss))
@@ -170,6 +176,8 @@ def train_metrics(opt):
             gt_list.append(label_batch.cpu().numpy())
             pred_list.append(predicted_label.cpu().numpy())
             train_bar.set_description('loss:{0:4f}, triplet:{1:4f}'.format(loss, triplet_loss))
+            train_bar.set_description('epoch:{0:}, loss:{1:4f}, triplet:{2:4f}'.format(epoch, loss, triplet_loss))
+
         gt_list = np.concatenate(gt_list, axis=0)
         pred_list = np.concatenate(pred_list, axis=0)
         train_acc = np.sum(pred_list == gt_list) / len(gt_list)
