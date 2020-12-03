@@ -85,6 +85,58 @@ class WideResNet(nn.Module):
             return outputs, embedding
         return outputs
 
+
+class ResNetMetrics(nn.Module):
+    def __init__(self, layers=(2, 2, 2, 2), num_classes=20, dropout_rate=0, norm_layer=None):
+        super(ResNetMetrics, self).__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3,
+                               stride=1, padding=1, bias=False)
+        self.bn1 = norm_layer(64)
+        self.relu = nn.ReLU()
+        # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.layer1 = ResLayer(64, 64, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
+        self.layer2 = ResLayer(64, 128, layer_num=layers[1], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 16 * 16
+        self.layer3 = ResLayer(128, 256, layer_num=layers[2], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 8 * 8
+        self.layer4 = ResLayer(256, 512, layer_num=layers[3], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 4 * 4
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.encoder = nn.Sequential(
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Linear(512, 1024)
+        )
+        self.fc = nn.Sequential(
+            nn.BatchNorm1d(1024),
+            nn.Linear(1024, num_classes)
+        )
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, x, return_feats=False):
+        x = self.relu(self.bn1(self.conv1(x)))
+        # x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        # x = torch.flatten(x, 1)
+        embedding = torch.flatten(x, 1)
+        embedding = self.encoder(embedding)
+        outputs = self.fc(embedding)
+        if return_feats:
+            return outputs, embedding
+        return outputs
+
+
 if __name__ == '__main__':
     net = WideResNet()
     print(net)

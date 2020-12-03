@@ -112,11 +112,8 @@ def train_metrics(opt):
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=0, shuffle=False)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=128, num_workers=0, shuffle=False)
 
-    if opt.model == 'resnet':
-        model = ResNet(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
-    else:
-        model = WideResNet(layers=(4, 4, 4), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
-    #model = models.resnet50(num_classes=20)
+    model = ResNetMetrics(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
+
     if use_gpu:
         model.cuda()
     optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
