@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch
 
 class ResNet(nn.Module):
-    def __init__(self, layers=(2, 2, 2, 2), num_classes=20, norm_layer=None):
+    def __init__(self, layers=(2, 2, 2, 2), num_classes=20, dropout_rate=0, norm_layer=None):
         super(ResNet, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -13,10 +13,10 @@ class ResNet(nn.Module):
         self.bn1 = norm_layer(64)
         self.relu = nn.ReLU()
         # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = ResLayer(64, 64, layer_num=layers[0], stride=1, norm_layer=norm_layer)
-        self.layer2 = ResLayer(64, 128, layer_num=layers[1], stride=2, norm_layer=norm_layer)  # 16 * 16
-        self.layer3 = ResLayer(128, 256, layer_num=layers[2], stride=2, norm_layer=norm_layer)  # 8 * 8
-        self.layer4 = ResLayer(256, 512, layer_num=layers[3], stride=2, norm_layer=norm_layer)  # 4 * 4
+        self.layer1 = ResLayer(64, 64, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
+        self.layer2 = ResLayer(64, 128, layer_num=layers[1], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 16 * 16
+        self.layer3 = ResLayer(128, 256, layer_num=layers[2], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 8 * 8
+        self.layer4 = ResLayer(256, 512, layer_num=layers[3], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 4 * 4
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512, num_classes)
 
