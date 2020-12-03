@@ -3,6 +3,8 @@ import torch
 import os
 import pandas as pd
 from tqdm import tqdm
+import torch.nn.functional as F
+
 
 def eval(model, eval_data, use_gpu=False):
     model.eval()
@@ -53,4 +55,52 @@ def save_results(pred_label, data_type, save_root, save_name):
     data = pd.DataFrame(data, columns=["image_id", data_type])
     data.to_csv(os.path.join(save_root, save_name), index=False)
 
+
+class TripletLoss(torch.nn.Module):
+    def __init__(self, margin=0.3):
+        super(TripletLoss, self).__init__()
+        self.margin = margin
+
+    def forward(self, anchor_feats, postive_feats, labels):
+        """
+            Inputs:
+            - sp: similarity between postive samples, shape (batchsize)
+            - sn: similarity between negative samples, shape (batchsize)
+            Output:
+            - triplet loss
+        """
+        negative_feats = self.get_nagetive(anchor_feats, labels)
+        sn = self.Cosine(anchor_feats, negative_feats)
+        sp = self.Cosine(anchor_feats, postive_feats)
+        loss = torch.mean(torch.clamp(sn - sp + self.margin, min=0))
+        return loss
+
+    def get_nagetive(self, features, labels):
+        bs = features.shape[0]
+        normal_anchor = F.normalize(features, dim=1)  # (bs, dim)
+        adjacent = torch.matmul(normal_anchor, normal_anchor.transpose(1, 0))  # (batch_size, batch_size)
+        # anchor_index = [i for i in range(bs)]
+        # anchor_adjacent = adjacent[anchor_index]  # (batch_size, 2 * batch_size)
+        for i in range(bs):
+            # anchor_adjacent[i, i] = -1
+            pair_index = (labels == labels[i])
+            adjacent[i, pair_index] = -1
+        negative_index = torch.argmax(adjacent, dim=1)  # hardest negative sample
+        negative_feats = features[negative_index]
+        return negative_feats
+
+    def Cosine(self, b1, b2):
+        """
+            Inputs:
+                - features1: shape (batchsize, dim)
+                - features2: shape (batchsize, dim)
+            Output:
+                - cosine distance between features1 and features2
+        """
+        normal1 = F.normalize(b1, dim=1)
+        normal2 = F.normalize(b2, dim=1)
+        batch_size = normal1.shape[0]
+        cos = torch.sum(normal1 * normal2, 1)
+        cos = cos.reshape(batch_size)
+        return cos
 # save_results(np.arange(100), 'coarse_label', '../results', '1.csv')
