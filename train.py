@@ -158,11 +158,10 @@ def train_metrics(opt):
             optimizer.zero_grad()
             outputs, feats = model(img_batch, return_feats=True)
             outputs_p, feats_p = model(postive_batch, return_feats=True)
-            loss = loss_function(outputs, label_batch)
-            triplet_loss = 0
+            triplet_loss = discrimitive_loss(feats, feats_p, label_batch)
+            loss = triplet_loss * opt.lambda_triplet
             if epoch > opt.triplet_warm_up:
-                triplet_loss = discrimitive_loss(feats, feats_p, label_batch)
-                loss += triplet_loss * opt.lambda_triplet
+                loss += loss_function(outputs, label_batch)
             loss.backward()
             optimizer.step()
             loss_list.append(loss.detach().cpu().numpy())
