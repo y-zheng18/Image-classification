@@ -103,12 +103,12 @@ class ResNetMetrics(nn.Module):
         self.layer4 = ResLayer(256, 512, layer_num=layers[3], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 4 * 4
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.encoder = nn.Sequential(
-            nn.Linear(512, 512),
-            nn.ReLU(),
-            nn.Linear(512, 1024)
+            nn.Linear(960, 1024),
+            nn.PReLU(),
+            nn.Linear(1024, 1024)
         )
         self.fc = nn.Sequential(
-            nn.BatchNorm1d(1024),
+            # nn.BatchNorm1d(1024),
             nn.Linear(1024, num_classes)
         )
 
@@ -124,12 +124,16 @@ class ResNetMetrics(nn.Module):
         # x = self.maxpool(x)
 
         x = self.layer1(x)
+        feats1 = self.avgpool(x)
         x = self.layer2(x)
+        feats2 = self.avgpool(x)
         x = self.layer3(x)
+        feats3 = self.avgpool(x)
         x = self.layer4(x)
-        x = self.avgpool(x)
+        feats4 = self.avgpool(x)
         # x = torch.flatten(x, 1)
-        embedding = torch.flatten(x, 1)
+        embedding = torch.cat((feats1, feats2, feats3, feats4), dim=1)
+        embedding = torch.flatten(embedding, 1)
         embedding = self.encoder(embedding)
         outputs = self.fc(embedding)
         if return_feats:
@@ -138,11 +142,12 @@ class ResNetMetrics(nn.Module):
 
 
 if __name__ == '__main__':
-    net = WideResNet()
-    print(net)
+    net = ResNetMetrics()
+    x = torch.randn((32, 3, 32, 32))
+    print(net(x).shape)
     from torchvision.models import resnet, resnext101_32x8d, ResNet
     import torchvision.models as models
-    resnet18 = resnet.resnet18(num_classes=20)
+    # resnet18 = resnet.resnet18(num_classes=20)
     # print(resnet18, models.resnext50_32x4d(num_classes=20))
 
     torch.save(net.state_dict(), 'test_resnet.pth')
