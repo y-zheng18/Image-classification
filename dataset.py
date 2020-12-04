@@ -156,7 +156,7 @@ class TrainPairDataset(Dataset):
         positive_list = positive_list[positive_list != index]
         positive_index = np.random.choice(positive_list)
         # positive_index = self.img_id[positive_index]
-        print(positive_index, index, self.img_id[index], self.img_id[positive_index], self.label_id[index], self.label_id[positive_index])
+        # print(positive_index, index, self.img_id[index], self.img_id[positive_index], self.label_id[index], self.label_id[positive_index])
         img_positive = self.img_data[self.img_id[positive_index]].reshape(3, 32, 32).transpose((1, 2, 0))
         img_positive = Image.fromarray(img_positive)
         label = self.label_id[index]
