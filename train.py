@@ -112,8 +112,11 @@ def train_metrics(opt):
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=0, shuffle=False)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=128, num_workers=0, shuffle=False)
 
-    model = ResNetMetrics(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
-
+    if opt.model == 'resnet':
+        model = ResNet(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
+    else:
+        model = WideResNet(layers=(4, 4, 4), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
+    #model = models.resnet50(num_classes=20)
     if use_gpu:
         model.cuda()
     optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
@@ -153,7 +156,7 @@ def train_metrics(opt):
             optimizer.zero_grad()
             outputs, feats = model(img_batch, return_feats=True)
             outputs_p, feats_p = model(postive_batch, return_feats=True)
-            loss = loss_function(outputs, label_batch) + loss_function(outputs_p, label_batch)
+            loss = loss_function(outputs, label_batch)
             triplet_loss = 0
             if epoch > opt.triplet_warm_up:
                 triplet_loss = discrimitive_loss(feats, feats_p, label_batch)
