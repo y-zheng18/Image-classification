@@ -113,8 +113,7 @@ class TrainPairDataset(Dataset):
         self.img_data = np.load(os.path.join(data_root, 'train.npy'))
         if data_type == 'coarse':
             num_ins = 2500
-            self.num_ins = num_ins
-            train_num = 2250
+            self.train_num = 2250
             self.anno = pd.read_csv(os.path.join(data_root, 'train1.csv'))
             label_all = np.array(self.anno['coarse_label'])
             img_id_all = np.array(self.anno['image_id'])
@@ -124,15 +123,14 @@ class TrainPairDataset(Dataset):
             self.img_id = []
             self.label_id = []
             for i in range(len(label_all) // num_ins):
-                self.img_id.append(img_id_sorted[num_ins * i:num_ins * i + train_num])
-                self.label_id.append(label_sorted[num_ins * i:num_ins * i + train_num])
+                self.img_id.append(img_id_sorted[num_ins * i:num_ins * i + self.train_num])
+                self.label_id.append(label_sorted[num_ins * i:num_ins * i + self.train_num])
             self.img_id = np.concatenate(self.img_id, axis=0)
             self.label_id = np.concatenate(self.label_id, axis=0)
         else:
             assert data_type == 'fine'
             num_ins = 500
-            self.num_ins = num_ins
-            train_num = 450
+            self.train_num = 450
             self.anno = pd.read_csv(os.path.join(data_root, 'train2.csv'))
             label_all = np.array(self.anno['fine_label'])
             img_id_all = np.array(self.anno['image_id'])
@@ -142,8 +140,8 @@ class TrainPairDataset(Dataset):
             self.img_id = []
             self.label_id = []
             for i in range(len(label_all) // num_ins):
-                self.img_id.append(img_id_sorted[num_ins * i:num_ins * i + train_num])
-                self.label_id.append(label_sorted[num_ins * i:num_ins * i + train_num])
+                self.img_id.append(img_id_sorted[num_ins * i:num_ins * i + self.train_num])
+                self.label_id.append(label_sorted[num_ins * i:num_ins * i + self.train_num])
             self.img_id = np.concatenate(self.img_id, axis=0)
             self.label_id = np.concatenate(self.label_id, axis=0)
 
@@ -153,22 +151,27 @@ class TrainPairDataset(Dataset):
     def __getitem__(self, index):
         img = self.img_data[self.img_id[index]].reshape(3, 32, 32).transpose((1, 2, 0))
         img = Image.fromarray(img)
-        class_num = self.img_id[index] // self.num_ins
-        positive_list = np.arange(self.num_ins * class_num, self.num_ins * class_num + int(self.num_ins * 0.9))
-        positive_list = positive_list[positive_list != self.img_id[index]]
+        class_num = index // self.train_num
+        positive_list = np.arange(self.train_num * class_num, self.train_num * (class_num + 1))
+        positive_list = positive_list[positive_list != index]
         positive_index = np.random.choice(positive_list)
-        # print(positive_index, self.img_id[index])
-        img_positive = self.img_data[positive_index].reshape(3, 32, 32).transpose((1, 2, 0))
+        # positive_index = self.img_id[positive_index]
+        print(positive_index, index, self.img_id[index], self.img_id[positive_index], self.label_id[index], self.label_id[positive_index])
+        img_positive = self.img_data[self.img_id[positive_index]].reshape(3, 32, 32).transpose((1, 2, 0))
         img_positive = Image.fromarray(img_positive)
         label = self.label_id[index]
         img = self.transform(img)
         img_positive = self.transform(img_positive)
         return img, img_positive, label
 
+
 if __name__ == "__main__":
-    dataset = TrainPairDataset(data_type='fine')
+    dataset = TrainPairDataset(data_type='coarse')
+    print(len(dataset))
+    d = TrainDataset(data_type='coarse', phase='eval')
+    print(d.img_id, 29621 in d.img_id)
     dataloader = DataLoader(dataset=dataset, batch_size=128, num_workers=0, shuffle=True)
-    for img, label in dataloader:
+    for img, _, label in dataloader:
         print(img.shape, label)
 
 # vim: ts=4 sw=4 sts=4 expandtab
