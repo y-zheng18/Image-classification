@@ -145,6 +145,7 @@ if __name__ == '__main__':
     net = ResNetMetrics()
     x = torch.randn((32, 3, 32, 32))
     print(net(x).shape)
+
     from torchvision.models import resnet, resnext101_32x8d, ResNet
     import torchvision.models as models
     # resnet18 = resnet.resnet18(num_classes=20)
