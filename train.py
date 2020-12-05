@@ -122,12 +122,11 @@ def train_metrics(opt):
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=0, shuffle=False)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=128, num_workers=0, shuffle=False)
 
-    # if opt.model == 'resnet':
-    #     model = ResNet(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
-    # else:
-    #     model = WideResNet(layers=(4, 4, 4), num_classes=20 if opt.data_type == 'coarse' else 200, dropout_rate=opt.dropout_rate)
-    #model = models.resnet50(num_classes=20)
-    model = ResNetMetrics(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+    if opt.model == 'resnet':
+        model = ResNetMetrics(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+    else:
+        model = WideResNetMetrics(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+    # model = ResNetMetrics(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
 
     if use_gpu:
         model.cuda()
@@ -171,15 +170,14 @@ def train_metrics(opt):
             optimizer.zero_grad()
             outputs, feats = model(img_batch, return_feats=True)
             outputs_p, feats_p = model(postive_batch, return_feats=True)
-            triplet_loss = discrimitive_loss(feats, feats_p, label_batch)
+            triplet_loss = discrimitive_loss(feats, feats_p, label_batch, hardest=epoch > opt.triplet_warm_up)
             loss = triplet_loss * opt.lambda_triplet
             if epoch > opt.triplet_warm_up:
                 loss += loss_function(outputs, label_batch)
             loss.backward()
             optimizer.step()
             loss_list.append(loss.detach().cpu().numpy())
-            if epoch > opt.triplet_warm_up:
-                triplet_loss = triplet_loss.detach().cpu().numpy()
+            triplet_loss = triplet_loss.detach().cpu().numpy()
             triplet_loss_list.append(triplet_loss)
             # if it % 10 == 0:
             #     print('epoch:{0:}, lr:{1:06f}, it:{2:}, loss:{3:04f}'.format(

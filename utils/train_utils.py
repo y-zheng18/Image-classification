@@ -61,7 +61,7 @@ class TripletLoss(torch.nn.Module):
         super(TripletLoss, self).__init__()
         self.margin = margin
 
-    def forward(self, anchor_feats, postive_feats, labels):
+    def forward(self, anchor_feats, postive_feats, labels, hardest=True):
         """
             Inputs:
             - sp: similarity between postive samples, shape (batchsize)
@@ -69,27 +69,34 @@ class TripletLoss(torch.nn.Module):
             Output:
             - triplet loss
         """
-        negative_feats = self.get_nagetive(anchor_feats, labels)
+        negative_feats = self.get_nagetive(anchor_feats, labels, hardest)
         sn = self.Cosine(anchor_feats, negative_feats)
         sp = self.Cosine(anchor_feats, postive_feats) # torch.sum(anchor_feats * postive_feats, 1)
         loss = torch.mean(torch.clamp(sn - sp + self.margin, min=0))
         return loss
 
-    def get_nagetive(self, features, labels):
+    def get_nagetive(self, features, labels, hardest=True):
         bs = features.shape[0]
         normal_anchor = F.normalize(features, dim=1)  # (bs, dim)
         adjacent = torch.matmul(normal_anchor, normal_anchor.transpose(1, 0))  # (batch_size, batch_size)
         # adjacent = torch.matmul(features, features.transpose(1, 0))
         # anchor_index = [i for i in range(bs)]
         # anchor_adjacent = adjacent[anchor_index]  # (batch_size, 2 * batch_size)
-        for i in range(bs):
-            # anchor_adjacent[i, i] = -1
-            pair_index = (labels == labels[i])
-            adjacent[i, pair_index] = -1
-        # print(adjacent, labels)
-        negative_index = torch.argmax(adjacent, dim=1)  # hardest negative sample
-        # assert torch.sum(negative_index == torch.arange(0, bs)) == 0
-        negative_feats = features[negative_index]
+        if hardest:
+            for i in range(bs):
+                pair_index = (labels == labels[i])
+                adjacent[i, pair_index] = -1
+            negative_index = torch.argmax(adjacent, dim=1)  # hardest negative sample
+            # assert torch.sum(negative_index == torch.arange(0, bs)) == 0
+            negative_feats = features[negative_index]
+        else:
+            negative_index = []
+            for i in range(bs):
+                pair_index = (labels == labels[i])
+                negative_index.append(np.random.choice(np.arange(bs)[pair_index.cpu().numpy()]))
+            # negative_index = torch.argmax(-adjacent, dim=1)  # hardest negative sample
+            # assert torch.sum(negative_index == torch.arange(0, bs)) == 0
+            negative_feats = features[negative_index]
         return negative_feats
 
     def Cosine(self, b1, b2):

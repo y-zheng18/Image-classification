@@ -29,6 +29,6 @@ def get_args():
 
     parser.add_argument('--use_triplet', default=False, action='store_true')
     parser.add_argument('--triplet_margin', type=float, default=0.4)
-    parser.add_argument('--triplet_warm_up', type=int, default=5)
+    parser.add_argument('--triplet_warm_up', type=int, default=-1)
     parser.add_argument('--lambda_triplet', type=float, default=1)
     return parser
