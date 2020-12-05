@@ -20,7 +20,7 @@ def test_metrics(opt):
     print("use_gpu:", use_gpu)
 
     test_dataloader = DataLoader(
-        datasets.CIFAR10(root='./cifar100', train=False, download=True, transform=transforms.Compose([
+        datasets.CIFAR100(root='./cifar100', train=False, download=True, transform=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])),
