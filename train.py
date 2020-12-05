@@ -27,9 +27,10 @@ def train(opt):
 
     if opt.model == 'resnet':
         model = ResNet(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
-    else:
+    elif opt.model == 'wide_resnet':
         model = WideResNet(layers=(4, 4, 4), num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
-    #model = models.resnet50(num_classes=20)
+    else:
+        model = MultiResNet(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     if use_gpu:
         model.cuda()
     optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
