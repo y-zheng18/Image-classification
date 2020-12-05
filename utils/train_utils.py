@@ -57,7 +57,7 @@ def save_results(pred_label, data_type, save_root, save_name):
 
 
 class TripletLoss(torch.nn.Module):
-    def __init__(self, margin=0.3):
+    def __init__(self, margin=0.4):
         super(TripletLoss, self).__init__()
         self.margin = margin
 
@@ -71,7 +71,7 @@ class TripletLoss(torch.nn.Module):
         """
         negative_feats = self.get_nagetive(anchor_feats, labels)
         sn = self.Cosine(anchor_feats, negative_feats)
-        sp = self.Cosine(anchor_feats, postive_feats)
+        sp = self.Cosine(anchor_feats, postive_feats) # torch.sum(anchor_feats * postive_feats, 1)
         loss = torch.mean(torch.clamp(sn - sp + self.margin, min=0))
         return loss
 
@@ -79,6 +79,7 @@ class TripletLoss(torch.nn.Module):
         bs = features.shape[0]
         normal_anchor = F.normalize(features, dim=1)  # (bs, dim)
         adjacent = torch.matmul(normal_anchor, normal_anchor.transpose(1, 0))  # (batch_size, batch_size)
+        # adjacent = torch.matmul(features, features.transpose(1, 0))
         # anchor_index = [i for i in range(bs)]
         # anchor_adjacent = adjacent[anchor_index]  # (batch_size, 2 * batch_size)
         for i in range(bs):
@@ -87,6 +88,7 @@ class TripletLoss(torch.nn.Module):
             adjacent[i, pair_index] = -1
         # print(adjacent, labels)
         negative_index = torch.argmax(adjacent, dim=1)  # hardest negative sample
+        # assert torch.sum(negative_index == torch.arange(0, bs)) == 0
         negative_feats = features[negative_index]
         return negative_feats
 

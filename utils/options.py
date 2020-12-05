@@ -18,6 +18,7 @@ def get_args():
     parser.add_argument('--epoch_resume', type=int, default=0)
     parser.add_argument('--lr', type=float, default=1e-1)
     parser.add_argument('--lr_policy', type=str, default='multi-step', choices=['cosine', 'multi-step'])
+    parser.add_argument('--optim_policy', type=str, default='SGD', choices=['Adam', 'SGD'])
     parser.add_argument('--lr_steps', type=int, default=[10, 40, 80], nargs='+')
     parser.add_argument('--lr_decay', type=float, default=0.2)
     parser.add_argument('--lr_tolerance', type=int, default=1)
@@ -26,7 +27,7 @@ def get_args():
     parser.add_argument('--save_fre', type=int, default=10)
 
     parser.add_argument('--use_triplet', default=False, action='store_true')
-    parser.add_argument('--triplet_margin', type=float, default=0.3)
+    parser.add_argument('--triplet_margin', type=float, default=0.4)
     parser.add_argument('--triplet_warm_up', type=int, default=5)
     parser.add_argument('--lambda_triplet', type=float, default=1)
     return parser

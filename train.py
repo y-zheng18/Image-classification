@@ -33,7 +33,12 @@ def train(opt):
         model = MultiResNet(layers=(2, 2, 2, 2), num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     if use_gpu:
         model.cuda()
-    optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
+
+    if opt.optim_policy == 'SGD':
+        optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), betas=(0.9, 0.95), lr=opt.lr, weight_decay=opt.weight_decay)
+
     if opt.lr_policy == 'cosine':
         optim_lr_schedule = lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
     else:
@@ -86,13 +91,17 @@ def train(opt):
         if best_acc < acc:
             best_acc = acc
             best_epoch = epoch
-            save_model(model, opt.chkpoint_path, '{}_{}.pth'.format(opt.model, opt.data_type))
-            save_model(optimizer, opt.chkpoint_path, 'optim_{}_{}.pth'.format(opt.model, opt.data_type))
+            save_model(model, opt.chkpoint_path,
+                       '{}_{}_{}.pth'.format(opt.model, opt.optim_policy, opt.data_type))
+            save_model(optimizer, opt.chkpoint_path,
+                       'optim_{}_{}_{}.pth'.format(opt.model, opt.optim_policy, opt.data_type))
             test_label_pred = test(model, test_dataloader, use_gpu)
             if opt.data_type == 'coarse':
-                save_results(test_label_pred, opt.data_type, opt.result_path, '1_{}.csv'.format(opt.model))
+                save_results(test_label_pred, opt.data_type, opt.result_path,
+                             '1_{}_{}.csv'.format(opt.model, opt.optim_policy))
             else:
-                save_results(test_label_pred, opt.data_type, opt.result_path, '2_{}.csv'.format(opt.model))
+                save_results(test_label_pred, opt.data_type, opt.result_path,
+                             '2_{}_{}.csv'.format(opt.model, opt.optim_policy))
         print('epoch:{0:}, lr:{1:6f}, loss:{2:4f}, train_acc:{3:4f}, test_acc:{4:4f}, best_acc:{5:4f}, best_epoch{6:}'.format(
             epoch, optimizer.param_groups[0]['lr'], np.mean(loss_list), train_acc, acc, best_acc, best_epoch
         ))
@@ -122,7 +131,10 @@ def train_metrics(opt):
 
     if use_gpu:
         model.cuda()
-    optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
+    if opt.optim_policy == 'SGD':
+        optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), betas=(0.9, 0.95), lr=opt.lr, weight_decay=opt.weight_decay)
     if opt.lr_policy == 'cosine':
         optim_lr_schedule = lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
     else:
@@ -187,13 +199,13 @@ def train_metrics(opt):
         if best_acc < acc:
             best_acc = acc
             best_epoch = epoch
-            save_model(model, opt.chkpoint_path, '{}_{}_triplet.pth'.format(opt.model, opt.data_type))
-            save_model(optimizer, opt.chkpoint_path, 'optim_{}_{}_triplet.pth'.format(opt.model, opt.data_type))
+            save_model(model, opt.chkpoint_path, '{}_{}_{}_triplet.pth'.format(opt.model, opt.optim_policy, opt.data_type))
+            save_model(optimizer, opt.chkpoint_path, 'optim_{}_{}_{}_triplet.pth'.format(opt.model, opt.optim_policy, opt.data_type))
             test_label_pred = test(model, test_dataloader, use_gpu)
             if opt.data_type == 'coarse':
-                save_results(test_label_pred, opt.data_type, opt.result_path, '1_{}_triplet.csv'.format(opt.model))
+                save_results(test_label_pred, opt.data_type, opt.result_path, '1_{}_{}_triplet.csv'.format(opt.model, opt.optim_policy))
             else:
-                save_results(test_label_pred, opt.data_type, opt.result_path, '2_{}_triplet.csv'.format(opt.model))
+                save_results(test_label_pred, opt.data_type, opt.result_path, '2_{}_{}_triplet.csv'.format(opt.model, opt.optim_policy))
         print('epoch:{0:}, lr:{1:6f}, loss:{2:4f}, triplet:{3:4f}, train_acc:{4:4f}, test_acc:{5:4f}, best_acc:{6:4f}, best_epoch{7:}'.format(
             epoch, optimizer.param_groups[0]['lr'], np.mean(loss_list), np.mean(triplet_loss_list),
             train_acc, acc, best_acc, best_epoch
