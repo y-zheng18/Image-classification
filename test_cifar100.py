@@ -60,7 +60,7 @@ def test_metrics(opt):
             predicted = model(img_batch)
             _, predicted_label = torch.max(predicted, dim=1)
             pred_list.append(predicted_label.cpu().numpy())
-            gt_list.append(label.numpy())
+            gt_list.append(label_batch.numpy())
         gt_list = np.concatenate(gt_list, axis=0)
         pred_list = np.concatenate(pred_list, axis=0)
         eval_acc = np.sum(pred_list == gt_list) / len(gt_list)
