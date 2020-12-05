@@ -14,6 +14,7 @@ def get_args():
     parser.add_argument('--load_optim_dir', type=str, default=None)
 
     parser.add_argument('--model', type=str, default='resnet')
+    parser.add_argument('--layers', type=int, default=[2, 2, 2, 2], nargs='+')
     parser.add_argument('--epoch', type=int, default=200)
     parser.add_argument('--epoch_resume', type=int, default=0)
     parser.add_argument('--lr', type=float, default=1e-1)
