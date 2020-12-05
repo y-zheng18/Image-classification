@@ -86,5 +86,5 @@ if __name__ == '__main__':
     net=Wide_ResNet(28, 10, 0.3, 10)
     print(net)
     y = net(Variable(torch.randn(1, 3, 32, 32)))
-    torch.save(net.state_dict(), 'wide_res.pth')
+    # torch.save(net.state_dict(), 'wide_res.pth')
     print(y.size())

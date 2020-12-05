@@ -1,4 +1,4 @@
-from model.modules import ResLayer
+from model.modules import *
 import torch.nn as nn
 import torch
 
@@ -55,10 +55,10 @@ class WideResNet(nn.Module):
         self.bn1 = norm_layer(16)
         self.relu1 = nn.ReLU()
         # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = ResLayer(16, 160, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
-        self.layer2 = ResLayer(160, 320, layer_num=layers[1], stride=2, norm_layer=norm_layer,
+        self.layer1 = WideResLayer(16, 160, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
+        self.layer2 = WideResLayer(160, 320, layer_num=layers[1], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 16 * 16
-        self.layer3 = ResLayer(320, 640, layer_num=layers[2], stride=2, norm_layer=norm_layer,
+        self.layer3 = WideResLayer(320, 640, layer_num=layers[2], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 8 * 8
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(640, num_classes)
@@ -154,10 +154,10 @@ class WideResNetMetrics(nn.Module):
         self.bn1 = norm_layer(16)
         self.relu1 = nn.ReLU()
         # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = ResLayer(16, 160, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
-        self.layer2 = ResLayer(160, 320, layer_num=layers[1], stride=2, norm_layer=norm_layer,
+        self.layer1 = WideResLayer(16, 160, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
+        self.layer2 = WideResLayer(160, 320, layer_num=layers[1], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 16 * 16
-        self.layer3 = ResLayer(320, 640, layer_num=layers[2], stride=2, norm_layer=norm_layer,
+        self.layer3 = WideResLayer(320, 640, layer_num=layers[2], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 8 * 8
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(640, num_classes)
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     # resnet18 = resnet.resnet18(num_classes=20)
     # print(resnet18, models.resnext50_32x4d(num_classes=20))
 
-    torch.save(net.state_dict(), 'test_resnet.pth')
+    # torch.save(net.state_dict(), 'test_resnet.pth')
     # torch.save(resnet18.state_dict(), 'official_resnet.pth')
     for i in range(1000):
         x = net(torch.randn((32, 3, 32, 32)))
