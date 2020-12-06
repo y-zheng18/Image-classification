@@ -45,7 +45,7 @@ class ResNet(nn.Module):
 
 
 class WideResNet(nn.Module):
-    def __init__(self, layers=(4, 4, 4), num_classes=20, dropout_rate=0.3, norm_layer=None):
+    def __init__(self, layers=(4, 4, 4), factor=10, num_classes=20, dropout_rate=0.3, norm_layer=None):
         super(WideResNet, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -55,14 +55,14 @@ class WideResNet(nn.Module):
         self.bn1 = norm_layer(16)
         self.relu1 = nn.ReLU()
         # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = WideResLayer(16, 160, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
-        self.layer2 = WideResLayer(160, 320, layer_num=layers[1], stride=2, norm_layer=norm_layer,
+        self.layer1 = WideResLayer(16, 16 * factor, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
+        self.layer2 = WideResLayer(16 * factor, 32 * factor, layer_num=layers[1], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 16 * 16
-        self.layer3 = WideResLayer(320, 640, layer_num=layers[2], stride=2, norm_layer=norm_layer,
+        self.layer3 = WideResLayer(32 * factor, 64 * factor, layer_num=layers[2], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 8 * 8
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(640, num_classes)
-        self.bn2 = norm_layer(640)
+        self.fc = nn.Linear(64 * factor, num_classes)
+        self.bn2 = norm_layer(64 * factor)
         self.relu2 = nn.ReLU()
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -144,7 +144,7 @@ class ResNetMetrics(nn.Module):
 
 
 class WideResNetMetrics(nn.Module):
-    def __init__(self, layers=(4, 4, 4), num_classes=20, dropout_rate=0.3, norm_layer=None):
+    def __init__(self, layers=(4, 4, 4), factor=10, num_classes=20, dropout_rate=0.3, norm_layer=None):
         super(WideResNetMetrics, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -154,14 +154,14 @@ class WideResNetMetrics(nn.Module):
         self.bn1 = norm_layer(16)
         self.relu1 = nn.ReLU()
         # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = WideResLayer(16, 160, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
-        self.layer2 = WideResLayer(160, 320, layer_num=layers[1], stride=2, norm_layer=norm_layer,
+        self.layer1 = WideResLayer(16, 16 * factor, layer_num=layers[0], stride=1, norm_layer=norm_layer, dropout_rate=dropout_rate)
+        self.layer2 = WideResLayer(16 * factor, 32 * factor, layer_num=layers[1], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 16 * 16
-        self.layer3 = WideResLayer(320, 640, layer_num=layers[2], stride=2, norm_layer=norm_layer,
+        self.layer3 = WideResLayer(32 * factor, 64 * factor, layer_num=layers[2], stride=2, norm_layer=norm_layer,
                                dropout_rate=dropout_rate)  # 8 * 8
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(640, num_classes)
-        self.bn2 = norm_layer(640)
+        self.fc = nn.Linear(64 * factor, num_classes)
+        self.bn2 = norm_layer(64 * factor)
         self.relu2 = nn.ReLU()
         # self.encoder = nn.Sequential(
         #     nn.Linear(640, 1024),
@@ -171,7 +171,7 @@ class WideResNetMetrics(nn.Module):
         # )
         self.fc = nn.Sequential(
             # nn.BatchNorm1d(1024),
-            nn.Linear(640, num_classes)
+            nn.Linear(64 * factor, num_classes)
         )
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

@@ -28,9 +28,11 @@ def train(opt):
     if opt.model == 'resnet':
         model = ResNet(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     elif opt.model == 'wide_resnet':
-        model = WideResNet(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
-    else:
+        model = WideResNet(layers=opt.layers, factor=opt.wide_factor, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+    elif opt.model == 'multi-res':
         model = MultiResNet(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+    else:
+        model = models.resnext50_32x4d(num_classes=20 if opt.data_type == 'coarse' else 100)
     if use_gpu:
         model.cuda()
 
@@ -125,7 +127,7 @@ def train_metrics(opt):
     if opt.model == 'resnet':
         model = ResNetMetrics(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     else:
-        model = WideResNetMetrics(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+        model = WideResNetMetrics(layers=opt.layers, factor=opt.wide_factor, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     # model = ResNetMetrics(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
 
     if use_gpu:
