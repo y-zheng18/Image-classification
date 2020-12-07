@@ -161,7 +161,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
             anchor_list[i] = torch.mean(torch.cat(feats, dim=0), dim=0).unsqueeze(0)
         anchor_list = torch.cat(anchor_list, dim=0)
         anchor_list = anchor_list / (torch.norm(anchor_list, dim=1, keepdim=True))
-        for img, label in tqdm(eval_data, ncols=130):
+        for img, label in tqdm(eval_data, ncols=100):
             if use_gpu:
                 img = img.cuda()
             embeddings, _, _, _ = auto_encoder(backbone_model, img)
@@ -179,7 +179,6 @@ def test_metrics(auto_encoder, backbone_model, anchor_list, test_dataloader, use
     auto_encoder.eval()
     pred_list = []
 
-    print('extracting anchors')
     with torch.no_grad():
         for img in tqdm(test_dataloader, ncols=100):
             if use_gpu:
