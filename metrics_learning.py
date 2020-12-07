@@ -51,7 +51,7 @@ def train(opt):
         optimizer = torch.optim.Adam(auto_encoder.parameters(), betas=(0.9, 0.95), lr=opt.lr, weight_decay=opt.weight_decay)
 
     if opt.lr_policy == 'cosine':
-        optim_lr_schedule = lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
+        optim_lr_schedule = lr_scheduler.CosineAnnealingLR(optimizer, T_max=150)
     else:
         optim_lr_schedule = lr_scheduler.MultiStepLR(optimizer, opt.lr_steps, gamma=opt.lr_decay)
     # optim_lr_schedule = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=opt.lr_tolerance)
@@ -80,7 +80,7 @@ def train(opt):
         triplet_loss_list = []
         rec_loss_list = []
         cls_loss_list = []
-        train_bar = tqdm(train_dataloader, ncols=200)
+        train_bar = tqdm(train_dataloader, ncols=130)
         for img_batch, postive_batch, label_batch in train_bar:
             if use_gpu:
                 img_batch = img_batch.cuda()
@@ -148,7 +148,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
         anchor_list.append([])
 
     print('extracting anchors')
-    train_bar = tqdm(train_data, ncols=200)
+    train_bar = tqdm(train_data, ncols=130)
     with torch.no_grad():
         for img_batch, postive_batch, label_batch in train_bar:
             if use_gpu:
@@ -161,7 +161,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
             anchor_list[i] = torch.mean(torch.cat(feats, dim=0), dim=0).unsqueeze(0)
         anchor_list = torch.cat(anchor_list, dim=0)
         anchor_list = anchor_list / (torch.norm(anchor_list, dim=1, keepdim=True))
-        for img, label in tqdm(eval_data, ncols=200):
+        for img, label in tqdm(eval_data, ncols=130):
             if use_gpu:
                 img = img.cuda()
             embeddings, _, _, _ = auto_encoder(backbone_model, img)
@@ -181,7 +181,7 @@ def test_metrics(auto_encoder, backbone_model, anchor_list, test_dataloader, use
 
     print('extracting anchors')
     with torch.no_grad():
-        for img in tqdm(test_dataloader, ncols=200):
+        for img in tqdm(test_dataloader, ncols=100):
             if use_gpu:
                 img = img.cuda()
             embeddings, _, _, _ = auto_encoder(backbone_model, img)
@@ -203,7 +203,7 @@ def test_cifar100(auto_encoder, backbone_model, anchor_list, use_gpu):
         batch_size=128, shuffle=False,
         num_workers=0, pin_memory=True)
     with torch.no_grad():
-        for img, label in tqdm(test_dataloader, ncols=200):
+        for img, label in tqdm(test_dataloader, ncols=100):
             if use_gpu:
                 img = img.cuda()
             embeddings, _, _, _ = auto_encoder(backbone_model, img)
