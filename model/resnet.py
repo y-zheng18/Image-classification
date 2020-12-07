@@ -19,7 +19,7 @@ class ResNet(nn.Module):
         self.layer4 = ResLayer(256, 512, layer_num=layers[3], stride=2, norm_layer=norm_layer, dropout_rate=dropout_rate)  # 4 * 4
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512, num_classes)
-
+        self.embedding_size = 512
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -70,6 +70,7 @@ class WideResNet(nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+        self.embedding_size = 64 * factor
 
     def forward(self, x, return_feats=False):
         x = self.relu1(self.bn1(self.conv1(x)))

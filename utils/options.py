@@ -12,9 +12,11 @@ def get_args():
     parser.add_argument('--chkpoint_path', type=str, default='chkpoints/')
     parser.add_argument('--result_path', type=str, default='results/')
     parser.add_argument('--load_model_dir', type=str, default=None)
+    parser.add_argument('--load_autoencoder_dir', type=str, default=None)
     parser.add_argument('--load_optim_dir', type=str, default=None)
 
     parser.add_argument('--model', type=str, default='resnet')
+    parser.add_argument('--embedding_size', type=int, default=1024)
     parser.add_argument('--layers', type=int, default=[2, 2, 2, 2], nargs='+')
     parser.add_argument('--wide_factor', type=int, default=10)
     parser.add_argument('--epoch', type=int, default=200)
@@ -33,4 +35,6 @@ def get_args():
     parser.add_argument('--triplet_margin', type=float, default=0.4)
     parser.add_argument('--triplet_warm_up', type=int, default=-1)
     parser.add_argument('--lambda_triplet', type=float, default=1)
+    parser.add_argument('--lambda_rec', type=float, default=1)
+    parser.add_argument('--lambda_cls', type=float, default=1)
     return parser

@@ -37,6 +37,7 @@ def test(model, test_data,  use_gpu=False):
     return pred_list
 
 
+
 def load(model, chkpoints_path):
     print('loading for net ...', chkpoints_path)
     pretrained_dict = torch.load(chkpoints_path)
