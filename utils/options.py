@@ -3,7 +3,8 @@ import os
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpu', type=str, default='2')
+    parser.add_argument('--gpu', type=str, default='1')
+    parser.add_argument('--gpu_ids', type=int, default=[0], nargs='+')
 
     parser.add_argument('--bs', type=int, default=128)
     parser.add_argument('--dataroot', type=str, default='dataset/')

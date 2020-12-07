@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import torch.nn as nn
+from torch.nn import DataParallel
 from torch.utils.data import DataLoader
 from dataset import TrainDataset
 import torch.optim.lr_scheduler as lr_scheduler
@@ -9,11 +9,11 @@ from utils.options import get_args
 from utils.train_utils import *
 from dataset import *
 from model.resnet import *
-from torchvision import models
 
 
 def train(opt):
-    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
+    if len(opt.gpu_ids) == 1:
+        os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
     print(opt)
     use_gpu = torch.cuda.is_available()
     print("use_gpu:", use_gpu)
@@ -31,11 +31,16 @@ def train(opt):
         model = WideResNet(layers=opt.layers, factor=opt.wide_factor, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     elif opt.model == 'multi-res':
         model = MultiResNet(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+    elif opt.model == 'wide_resnext':
+        model = WideResNext(layers=opt.layers, factor=opt.wide_factor, groups=32, num_classes=20 if opt.data_type == 'coarse' else 100)
     else:
-        model = models.resnext50_32x4d(num_classes=20 if opt.data_type == 'coarse' else 100)
+        raise NotImplemented
+    # print(model)
     if use_gpu:
         model.cuda()
-
+    if len(opt.gpu_ids) > 1:
+        print("gpu_ids:{}".format(opt.gpu_ids))
+        model = DataParallel(model, device_ids=opt.gpu_ids)
     if opt.optim_policy == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), momentum=0.9, lr=opt.lr, weight_decay=opt.weight_decay)
     else:
@@ -74,6 +79,8 @@ def train(opt):
             optimizer.zero_grad()
             outputs = model(img_batch)
             loss = loss_function(outputs, label_batch)
+            if len(opt.gpu_ids) > 1:
+                loss = loss.mean()
             loss.backward()
             optimizer.step()
             loss_list.append(loss.detach().cpu().numpy())
@@ -89,6 +96,8 @@ def train(opt):
         gt_list = np.concatenate(gt_list, axis=0)
         pred_list = np.concatenate(pred_list, axis=0)
         train_acc = np.sum(pred_list == gt_list) / len(gt_list)
+        if len(opt.gpu_ids) > 1:
+            model = model.module
         acc = eval(model, eval_dataloader, use_gpu)
         if best_acc < acc:
             best_acc = acc
@@ -108,6 +117,8 @@ def train(opt):
             epoch, optimizer.param_groups[0]['lr'], np.mean(loss_list), train_acc, acc, best_acc, best_epoch
         ))
         # loss_list = np.array(loss_list)
+        if len(opt.gpu_ids) > 1:
+            model = DataParallel(model, device_ids=opt.gpu_ids)
         optim_lr_schedule.step()
 
 
