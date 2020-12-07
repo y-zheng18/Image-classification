@@ -32,6 +32,7 @@ def get_args():
     parser.add_argument('--save_fre', type=int, default=10)
 
     parser.add_argument('--use_triplet', default=False, action='store_true')
+    parser.add_argument('--use_tripletL2', default=False, action='store_true')
     parser.add_argument('--triplet_margin', type=float, default=0.4)
     parser.add_argument('--triplet_warm_up', type=int, default=-1)
     parser.add_argument('--lambda_triplet', type=float, default=1)

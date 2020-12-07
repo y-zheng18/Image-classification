@@ -36,8 +36,6 @@ def test(model, test_data,  use_gpu=False):
         pred_list = np.concatenate(pred_list)
     return pred_list
 
-
-
 def load(model, chkpoints_path):
     print('loading for net ...', chkpoints_path)
     pretrained_dict = torch.load(chkpoints_path)
@@ -113,4 +111,41 @@ class TripletLoss(torch.nn.Module):
         cos = torch.sum(normal1 * normal2, 1)
         cos = cos.reshape(batch_size)
         return cos
-# save_results(np.arange(100), 'coarse_label', '../results', '1.csv')
+
+
+class TripletL2Loss(torch.nn.Module):
+    def __init__(self):
+        super(TripletL2Loss, self).__init__()
+
+    def forward(self, anchor_feats, postive_feats, labels, hardest=True):
+        """
+            Inputs:
+            - sp: similarity between postive samples, shape (batchsize)
+            - sn: similarity between negative samples, shape (batchsize)
+            Output:
+            - triplet loss
+        """
+        negative_feats = self.get_nagetive(anchor_feats, labels, hardest)
+        sn = torch.norm(anchor_feats - negative_feats)
+        sp = torch.norm(anchor_feats- postive_feats)
+        loss = torch.mean(sp - sn)
+        return loss
+
+    def get_nagetive(self, features, labels, hardest=True):
+        bs = features.shape[0]
+        adjacent = (features ** 2).unsqueeze(2) + (features ** 2).unsqueeze(1) \
+                   - 2 * torch.matmul(features, features.transpose(1, 0)).unsqueeze(2)
+        print(adjacent.shape)
+        for i in range(bs):
+            pair_index = (labels == labels[i])
+            adjacent[i, pair_index] = 1e15
+        negative_index = torch.argmin(adjacent, dim=1)  # hardest negative sample
+        # assert torch.sum(negative_index == torch.arange(0, bs)) == 0
+        negative_feats = features[negative_index]
+
+        return negative_feats
+
+
+
+
+x = torch.randn()

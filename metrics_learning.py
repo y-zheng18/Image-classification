@@ -63,7 +63,11 @@ def train(opt):
     if opt.load_optim_dir is not None:
         load(optimizer, opt.load_optim_dir)
     CLS_loss = nn.CrossEntropyLoss()
-    TRI_loss = TripletLoss(margin=opt.triplet_margin)
+    if opt.use_triplet:
+        TRI_loss = TripletLoss(margin=opt.triplet_margin)
+    else:
+        assert opt.use_tripletL2
+        TRI_loss = TripletL2Loss()
     REC_loss = nn.MSELoss()
 
     result_path = opt.result_path
