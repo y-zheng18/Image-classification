@@ -7,18 +7,18 @@ class AutoEnocder(nn.Module):
     def __init__(self, in_planes, embedding_size=2048, num_classes=20):
         super(AutoEnocder, self).__init__()
         self.encoder = nn.Sequential(
-            nn.Linear(in_planes, embedding_size // 2),
+            nn.Linear(in_planes, embedding_size * 2),
             nn.PReLU(),
-            nn.Linear(embedding_size // 2, embedding_size // 2),
+            nn.Linear(embedding_size * 2, embedding_size * 2),
             nn.PReLU(),
-            nn.Linear(embedding_size // 2, embedding_size)
+            nn.Linear(embedding_size * 2, embedding_size)
         )
         self.decoder = nn.Sequential(
-            nn.Linear(embedding_size, embedding_size // 2),
+            nn.Linear(embedding_size, embedding_size * 2),
             nn.PReLU(),
-            nn.Linear(embedding_size // 2, embedding_size // 2),
+            nn.Linear(embedding_size * 2, embedding_size * 2),
             nn.PReLU(),
-            nn.Linear(embedding_size // 2, in_planes)
+            nn.Linear(embedding_size * 2, in_planes)
         )
         self.classifier = nn.Sequential(
             nn.BatchNorm1d(embedding_size),
