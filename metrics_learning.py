@@ -96,8 +96,7 @@ def train(opt):
             loss.backward()
             optimizer.step()
 
-
-            loss.detach().cpu().numpy()
+            loss = loss.detach().cpu().numpy()
             triplet_loss = triplet_loss.detach().cpu().numpy()
             classification_loss = classification_loss.detach().cpu().numpy()
             reconstruction_loss = reconstruction_loss.detach().cpu().numpy()
@@ -150,28 +149,29 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
 
     print('extracting anchors')
     train_bar = tqdm(train_data, ncols=200)
-    for img_batch, postive_batch, label_batch in train_bar:
-        if use_gpu:
-            img_batch = img_batch.cuda()
-            label_batch = label_batch.cuda()
-        embeddings, _, _, _ = auto_encoder(backbone_model, img_batch)
-        for i, l in enumerate(label_batch):
-            anchor_list[l].append(embeddings[i].unsqueeze(0))
-    for i, feats in enumerate(anchor_list):
-        anchor_list[i] = torch.mean(torch.cat(feats, dim=0), dim=0).unsqueeze(0)
-    anchor_list = torch.cat(anchor_list, dim=0)
-    anchor_list = anchor_list / (torch.norm(anchor_list, dim=1, keepdim=True))
-    for img, label in tqdm(eval_data, ncols=200):
-        if use_gpu:
-            img = img.cuda()
-        embeddings, _, _, _ = auto_encoder(backbone_model, img)
-        cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
-        _, predicted_label = torch.max(cos_distance, dim=1)
-        gt_list.append(label.numpy())
-        pred_list.append(predicted_label.cpu().numpy())
-    gt_list = np.concatenate(gt_list, axis=0)
-    pred_list = np.concatenate(pred_list, axis=0)
-    eval_acc = np.sum(pred_list == gt_list) / len(gt_list)
+    with torch.no_grad():
+        for img_batch, postive_batch, label_batch in train_bar:
+            if use_gpu:
+                img_batch = img_batch.cuda()
+                label_batch = label_batch.cuda()
+            embeddings, _, _, _ = auto_encoder(backbone_model, img_batch)
+            for i, l in enumerate(label_batch):
+                anchor_list[l].append(embeddings[i].unsqueeze(0))
+        for i, feats in enumerate(anchor_list):
+            anchor_list[i] = torch.mean(torch.cat(feats, dim=0), dim=0).unsqueeze(0)
+        anchor_list = torch.cat(anchor_list, dim=0)
+        anchor_list = anchor_list / (torch.norm(anchor_list, dim=1, keepdim=True))
+        for img, label in tqdm(eval_data, ncols=200):
+            if use_gpu:
+                img = img.cuda()
+            embeddings, _, _, _ = auto_encoder(backbone_model, img)
+            cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
+            _, predicted_label = torch.max(cos_distance, dim=1)
+            gt_list.append(label.numpy())
+            pred_list.append(predicted_label.cpu().numpy())
+        gt_list = np.concatenate(gt_list, axis=0)
+        pred_list = np.concatenate(pred_list, axis=0)
+        eval_acc = np.sum(pred_list == gt_list) / len(gt_list)
     return eval_acc, anchor_list
 
 
@@ -180,14 +180,15 @@ def test_metrics(auto_encoder, backbone_model, anchor_list, test_dataloader, use
     pred_list = []
 
     print('extracting anchors')
-    for img in tqdm(test_dataloader, ncols=200):
-        if use_gpu:
-            img = img.cuda()
-        embeddings, _, _, _ = auto_encoder(backbone_model, img)
-        cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
-        _, predicted_label = torch.max(cos_distance, dim=1)
-        pred_list.append(predicted_label.cpu().numpy())
-    pred_list = np.concatenate(pred_list, axis=0)
+    with torch.no_grad():
+        for img in tqdm(test_dataloader, ncols=200):
+            if use_gpu:
+                img = img.cuda()
+            embeddings, _, _, _ = auto_encoder(backbone_model, img)
+            cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
+            _, predicted_label = torch.max(cos_distance, dim=1)
+            pred_list.append(predicted_label.cpu().numpy())
+        pred_list = np.concatenate(pred_list, axis=0)
     return pred_list
 
 def test_cifar100(auto_encoder, backbone_model, anchor_list, use_gpu):
@@ -201,17 +202,18 @@ def test_cifar100(auto_encoder, backbone_model, anchor_list, use_gpu):
         ])),
         batch_size=128, shuffle=False,
         num_workers=0, pin_memory=True)
-    for img, label in tqdm(test_dataloader, ncols=200):
-        if use_gpu:
-            img = img.cuda()
-        embeddings, _, _, _ = auto_encoder(backbone_model, img)
-        cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
-        _, predicted_label = torch.max(cos_distance, dim=1)
-        pred_list.append(predicted_label.cpu().numpy())
-        gt_list.append(label.numpy())
-    gt_list = np.concatenate(gt_list, axis=0)
-    pred_list = np.concatenate(pred_list, axis=0)
-    test_acc = np.sum(pred_list == gt_list) / len(gt_list)
+    with torch.no_grad():
+        for img, label in tqdm(test_dataloader, ncols=200):
+            if use_gpu:
+                img = img.cuda()
+            embeddings, _, _, _ = auto_encoder(backbone_model, img)
+            cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
+            _, predicted_label = torch.max(cos_distance, dim=1)
+            pred_list.append(predicted_label.cpu().numpy())
+            gt_list.append(label.numpy())
+        gt_list = np.concatenate(gt_list, axis=0)
+        pred_list = np.concatenate(pred_list, axis=0)
+        test_acc = np.sum(pred_list == gt_list) / len(gt_list)
     return test_acc
 
 
