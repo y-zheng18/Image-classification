@@ -87,8 +87,8 @@ def train(opt):
                 label_batch = label_batch.cuda()
                 postive_batch = postive_batch.cuda()
             optimizer.zero_grad()
-            embeddings, ori_feats, reconstruction, predicted = auto_encoder(backbone_model, img_batch)
-            embeddings_postive, _, _, _ = auto_encoder(backbone_model, postive_batch)
+            embeddings, ori_feats, reconstruction, predicted = auto_encoder(img_batch)
+            embeddings_postive, _, _, _ = auto_encoder(postive_batch)
             triplet_loss = TRI_loss(embeddings, embeddings_postive, label_batch) * opt.lambda_triplet
             classification_loss = CLS_loss(predicted, label_batch) * opt.lambda_cls
             reconstruction_loss = REC_loss(ori_feats, reconstruction) * opt.lambda_rec
@@ -111,7 +111,7 @@ def train(opt):
 
         ## evaluating ......
         print('evaluating......')
-        eval_acc, anchor_list = eval_metrics(auto_encoder, backbone_model,
+        eval_acc, anchor_list = eval_metrics(auto_encoder,
                                              num_classes, train_dataloader, eval_dataloader, use_gpu)
         print('eval_acc:', eval_acc)
         if best_acc < eval_acc:
@@ -121,7 +121,7 @@ def train(opt):
                        'autoencoder_{}.pth'.format(opt.embedding_size))
             save_model(optimizer, opt.chkpoint_path,
                        'optim_autoencoder_{}.pth'.format(opt.embedding_size))
-            test_label_pred = test_metrics(auto_encoder, backbone_model, anchor_list, test_dataloader, use_gpu)
+            test_label_pred = test_metrics(auto_encoder, anchor_list, test_dataloader, use_gpu)
             if opt.data_type == 'coarse':
                 save_results(test_label_pred, opt.data_type, opt.result_path,
                              '1_{}_{}.csv'.format(opt.model, opt.optim_policy))
@@ -135,11 +135,11 @@ def train(opt):
             eval_acc, best_acc, best_epoch
         ))
         if num_classes == 100:
-            print('cifar100:', test_cifar100(auto_encoder, backbone_model, anchor_list, use_gpu))
+            print('cifar100:', test_cifar100(auto_encoder, anchor_list, use_gpu))
         optim_lr_schedule.step()
 
 
-def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_data, use_gpu=False):
+def eval_metrics(auto_encoder, num_classes, train_data, eval_data, use_gpu=False):
     auto_encoder.eval()
     pred_list = []
     gt_list = []
@@ -154,7 +154,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
             if use_gpu:
                 img_batch = img_batch.cuda()
                 label_batch = label_batch.cuda()
-            embeddings, _, _, _ = auto_encoder(backbone_model, img_batch)
+            embeddings, _, _, _ = auto_encoder(img_batch)
             for i, l in enumerate(label_batch):
                 anchor_list[l].append((embeddings[i] / torch.norm(embeddings[i])).unsqueeze(0))
         for i, feats in enumerate(anchor_list):
@@ -168,7 +168,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
         for img, label in tqdm(eval_data, ncols=100):
             if use_gpu:
                 img = img.cuda()
-            embeddings, _, _, _ = auto_encoder(backbone_model, img)
+            embeddings, _, _, _ = auto_encoder(img)
             cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
             _, predicted_label = torch.max(cos_distance, dim=1)
             gt_list.append(label.numpy())
@@ -179,7 +179,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
     return eval_acc, anchor_list
 
 
-def test_metrics(auto_encoder, backbone_model, anchor_list, test_dataloader, use_gpu):
+def test_metrics(auto_encoder, anchor_list, test_dataloader, use_gpu):
     auto_encoder.eval()
     pred_list = []
 
@@ -187,14 +187,14 @@ def test_metrics(auto_encoder, backbone_model, anchor_list, test_dataloader, use
         for img in tqdm(test_dataloader, ncols=100):
             if use_gpu:
                 img = img.cuda()
-            embeddings, _, _, _ = auto_encoder(backbone_model, img)
+            embeddings, _, _, _ = auto_encoder(img)
             cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
             _, predicted_label = torch.max(cos_distance, dim=1)
             pred_list.append(predicted_label.cpu().numpy())
         pred_list = np.concatenate(pred_list, axis=0)
     return pred_list
 
-def test_cifar100(auto_encoder, backbone_model, anchor_list, use_gpu):
+def test_cifar100(auto_encoder, anchor_list, use_gpu):
     auto_encoder.eval()
     pred_list = []
     gt_list = []
@@ -209,7 +209,7 @@ def test_cifar100(auto_encoder, backbone_model, anchor_list, use_gpu):
         for img, label in tqdm(test_dataloader, ncols=100):
             if use_gpu:
                 img = img.cuda()
-            embeddings, _, _, _ = auto_encoder(backbone_model, img)
+            embeddings, _, _, _ = auto_encoder(img)
             cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
             _, predicted_label = torch.max(cos_distance, dim=1)
             pred_list.append(predicted_label.cpu().numpy())

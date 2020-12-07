@@ -25,7 +25,9 @@ def test_metrics(opt):
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=0, shuffle=False)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=128, num_workers=0, shuffle=False)
     num_classes = 20 if opt.data_type == 'coarse' else 100
-    model = ResNetMetrics(layers=(2, 2, 2, 2), num_classes=num_classes, dropout_rate=opt.dropout_rate)
+    model = ResNetMetrics(layers=(2, 2, 2, 2), num_classes=num_classes, dropout_rate=opt.dropout_rate) \
+        if opt.model == 'resnet' else WideResNetMetrics(layers=opt.layers, factor=opt.wide_factor,
+                                                        num_classes=num_classes, dropout_rate=opt.dropout_rate)
 
     if use_gpu:
         model.cuda()
@@ -55,12 +57,13 @@ def test_metrics(opt):
                 label_batch = label_batch.cuda()
             _, embeddings = model(img_batch, return_feats=True)
             for i, l in enumerate(label_batch):
+                # print(embeddings[i].shape)
                 anchor_list[l].append((embeddings[i] / torch.norm(embeddings[i])).unsqueeze(0))
         for i, feats in enumerate(anchor_list):
             feats = torch.cat(feats, dim=0)
             cos_distance = torch.mm(feats, feats.permute((1, 0)))
             similarity_sum = torch.sum(cos_distance, dim=1)
-            print(similarity_sum.shape)
+            # print(similarity_sum.shape)
             _, max_idx = torch.max(similarity_sum, dim=0)
             anchor_list[i] = feats[max_idx].unsqueeze(0)
         anchor_list = torch.cat(anchor_list, dim=0)

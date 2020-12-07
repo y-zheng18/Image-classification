@@ -105,10 +105,10 @@ class ResNetMetrics(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.encoder = nn.Sequential(
             nn.Linear(960, 1024),
-            nn.BatchNorm1d(1024),
+            #nn.BatchNorm1d(1024),
             nn.PReLU(),
             nn.Linear(1024, 1024),
-            nn.BatchNorm1d(1024),
+            #nn.BatchNorm1d(1024),
         )
         self.fc = nn.Sequential(
             # nn.BatchNorm1d(1024),
