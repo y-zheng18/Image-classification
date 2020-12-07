@@ -38,7 +38,7 @@ def train(opt):
     else:
         raise NotImplemented
 
-    auto_encoder = AutoEnocder(in_planes=back_bone.embedding_size,
+    auto_encoder = AutoEnocder(in_planes=backbone_model.embedding_size,
                                embedding_size=opt.embedding_size, num_classes=num_classes)
 
     if use_gpu:
@@ -80,7 +80,7 @@ def train(opt):
         triplet_loss_list = []
         rec_loss_list = []
         cls_loss_list = []
-        train_bar = tqdm(train_dataloader, ncols=100)
+        train_bar = tqdm(train_dataloader, ncols=200)
         for img_batch, postive_batch, label_batch in train_bar:
             if use_gpu:
                 img_batch = img_batch.cuda()
@@ -149,7 +149,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
         anchor_list.append([])
 
     print('extracting anchors')
-    train_bar = tqdm(train_data, ncols=100)
+    train_bar = tqdm(train_data, ncols=200)
     for img_batch, postive_batch, label_batch in train_bar:
         if use_gpu:
             img_batch = img_batch.cuda()
@@ -161,7 +161,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
         anchor_list[i] = torch.mean(torch.cat(feats, dim=0), dim=0).unsqueeze(0)
     anchor_list = torch.cat(anchor_list, dim=0)
     anchor_list = anchor_list / (torch.norm(anchor_list, dim=1, keepdim=True))
-    for img, label in tqdm(eval_data, ncols=100):
+    for img, label in tqdm(eval_data, ncols=200):
         if use_gpu:
             img = img.cuda()
         embeddings, _, _, _ = auto_encoder(backbone_model, img)
@@ -180,7 +180,7 @@ def test_metrics(auto_encoder, backbone_model, anchor_list, test_dataloader, use
     pred_list = []
 
     print('extracting anchors')
-    for img in tqdm(test_dataloader, ncols=100):
+    for img in tqdm(test_dataloader, ncols=200):
         if use_gpu:
             img = img.cuda()
         embeddings, _, _, _ = auto_encoder(backbone_model, img)
@@ -201,7 +201,7 @@ def test_cifar100(auto_encoder, backbone_model, anchor_list, use_gpu):
         ])),
         batch_size=128, shuffle=False,
         num_workers=0, pin_memory=True)
-    for img, label in tqdm(test_dataloader, ncols=100):
+    for img, label in tqdm(test_dataloader, ncols=200):
         if use_gpu:
             img = img.cuda()
         embeddings, _, _, _ = auto_encoder(backbone_model, img)

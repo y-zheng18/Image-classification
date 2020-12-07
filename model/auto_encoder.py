@@ -6,7 +6,6 @@ import torch
 class AutoEnocder(nn.Module):
     def __init__(self, in_planes, embedding_size=2048, num_classes=20):
         super(AutoEnocder, self).__init__()
-        in_planes = self.back_bone.embedding_size
         self.encoder = nn.Sequential(
             nn.Linear(in_planes, embedding_size // 2),
             nn.PReLU(),
