@@ -51,7 +51,7 @@ def train(opt):
         optimizer = torch.optim.Adam(auto_encoder.parameters(), betas=(0.9, 0.95), lr=opt.lr, weight_decay=opt.weight_decay)
 
     if opt.lr_policy == 'cosine':
-        optim_lr_schedule = lr_scheduler.CosineAnnealingLR(optimizer, T_max=150)
+        optim_lr_schedule = lr_scheduler.CosineAnnealingLR(optimizer, T_max=opt.epoch)
     else:
         optim_lr_schedule = lr_scheduler.MultiStepLR(optimizer, opt.lr_steps, gamma=opt.lr_decay)
     # optim_lr_schedule = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=opt.lr_tolerance)
@@ -80,7 +80,7 @@ def train(opt):
         triplet_loss_list = []
         rec_loss_list = []
         cls_loss_list = []
-        train_bar = tqdm(train_dataloader, ncols=130)
+        train_bar = tqdm(train_dataloader, ncols=120)
         for img_batch, postive_batch, label_batch in train_bar:
             if use_gpu:
                 img_batch = img_batch.cuda()
@@ -148,7 +148,7 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
         anchor_list.append([])
 
     print('extracting anchors')
-    train_bar = tqdm(train_data, ncols=130)
+    train_bar = tqdm(train_data, ncols=100)
     with torch.no_grad():
         for img_batch, postive_batch, label_batch in train_bar:
             if use_gpu:
