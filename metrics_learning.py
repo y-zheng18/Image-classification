@@ -38,8 +38,8 @@ def train(opt):
     else:
         raise NotImplemented
 
-    auto_encoder = AutoEnocder(in_planes=backbone_model.embedding_size,
-                               embedding_size=opt.embedding_size, num_classes=num_classes)
+    auto_encoder = AutoEnocder(backbone_model, embedding_size=opt.embedding_size,
+                               num_classes=num_classes, fix_backbone=opt.fix_backbone)
 
     if use_gpu:
         backbone_model.cuda()
@@ -156,11 +156,15 @@ def eval_metrics(auto_encoder, backbone_model, num_classes, train_data, eval_dat
                 label_batch = label_batch.cuda()
             embeddings, _, _, _ = auto_encoder(backbone_model, img_batch)
             for i, l in enumerate(label_batch):
-                anchor_list[l].append(embeddings[i].unsqueeze(0))
+                anchor_list[l].append((embeddings[i] / torch.norm(embeddings[i])).unsqueeze(0))
         for i, feats in enumerate(anchor_list):
-            anchor_list[i] = torch.mean(torch.cat(feats, dim=0), dim=0).unsqueeze(0)
+            feats = torch.cat(feats, dim=0)
+            cos_distance = torch.mm(feats, feats.permute((1, 0)))
+            similarity_sum = torch.sum(cos_distance, dim=1)
+            # print(similarity_sum.shape)
+            _, max_idx = torch.max(similarity_sum, dim=0)
+            anchor_list[i] = feats[max_idx].unsqueeze(0)
         anchor_list = torch.cat(anchor_list, dim=0)
-        anchor_list = anchor_list / (torch.norm(anchor_list, dim=1, keepdim=True))
         for img, label in tqdm(eval_data, ncols=100):
             if use_gpu:
                 img = img.cuda()

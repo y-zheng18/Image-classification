@@ -37,4 +37,6 @@ def get_args():
     parser.add_argument('--lambda_triplet', type=float, default=1)
     parser.add_argument('--lambda_rec', type=float, default=1)
     parser.add_argument('--lambda_cls', type=float, default=1)
+    parser.add_argument('--fix_backbone', default=True, action='store_false')
+
     return parser
