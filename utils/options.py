@@ -8,6 +8,7 @@ def get_args():
 
     parser.add_argument('--bs', type=int, default=128)
     parser.add_argument('--dataroot', type=str, default='dataset/')
+    parser.add_argument('--use_all_data', default=False, action='store_true')
     parser.add_argument('--data_type', type=str, default='coarse', choices=['coarse', 'fine'])
     parser.add_argument('--chkpoint_path', type=str, default='chkpoints/')
     parser.add_argument('--result_path', type=str, default='results/')

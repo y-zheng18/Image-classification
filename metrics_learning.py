@@ -19,13 +19,20 @@ def train(opt):
     print(opt)
     use_gpu = torch.cuda.is_available()
     print("use_gpu:", use_gpu)
-    train_dataset = TrainPairDataset(opt.dataroot, opt.data_type)
+    train_dataset = TrainPairDataset(opt.dataroot, opt.data_type, use_all_data=opt.use_all_data)
     eval_dataset = TrainDataset(opt.dataroot, opt.data_type, phase='eval')
     test_dataset = TestDataset(opt.dataroot)
 
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=opt.bs, num_workers=0, shuffle=True)
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=0, shuffle=False)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=128, num_workers=0, shuffle=False)
+    test_cifar = DataLoader(
+        datasets.CIFAR100(root='./cifar100', train=False, download=True, transform=transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        ])),
+        batch_size=128, shuffle=False,
+        num_workers=0, pin_memory=True)
     num_classes = 20 if opt.data_type == 'coarse' else 100
     if opt.model == 'resnet':
         backbone_model = ResNet(layers=opt.layers, num_classes=num_classes, dropout_rate=opt.dropout_rate)
@@ -63,11 +70,7 @@ def train(opt):
     if opt.load_optim_dir is not None:
         load(optimizer, opt.load_optim_dir)
     CLS_loss = nn.CrossEntropyLoss()
-    if opt.use_triplet:
-        TRI_loss = TripletLoss(margin=opt.triplet_margin)
-    else:
-        assert opt.use_tripletL2
-        TRI_loss = TripletL2Loss()
+    TRI_loss = TripletLoss(margin=opt.triplet_margin)
     REC_loss = nn.MSELoss()
 
     result_path = opt.result_path
@@ -115,8 +118,9 @@ def train(opt):
 
         ## evaluating ......
         print('evaluating......')
-        eval_acc, eval_acc_cls, anchor_list = eval_metrics(auto_encoder,
-                                             num_classes, train_dataloader, eval_dataloader, use_gpu)
+        eval_acc, eval_acc_cls, anchor_list = eval_metrics(auto_encoder, num_classes, train_dataloader,
+                                                           eval_data=eval_dataloader if not opt.use_all_data else test_cifar,
+                                                           use_gpu=use_gpu)
         print('eval_acc: {}, eval_cls_acc:{}'.format(eval_acc, eval_acc_cls))
         if best_acc < eval_acc:
             best_acc = eval_acc
@@ -132,8 +136,8 @@ def train(opt):
             else:
                 save_results(test_label_pred, opt.data_type, opt.result_path,
                              '2_{}_{}.csv'.format(opt.model, "metrics"))
-            if num_classes == 100:
-                print('cifar100:', test_cifar100(auto_encoder, anchor_list, use_gpu))
+            # if num_classes == 100:
+            #     print('cifar100:', test_cifar100(auto_encoder, anchor_list, use_gpu))
         print('epoch:{0:}, lr:{1:6f}, loss:{2:4f}, tri:{3:3f}, cls:{4:3f}, rec:{5:3f}, test_acc:{6:4f}, '
               'best_acc:{7:4f}, best_epoch{8:}'.format(
             epoch, optimizer.param_groups[0]['lr'], np.mean(loss_list), np.mean(triplet_loss_list),

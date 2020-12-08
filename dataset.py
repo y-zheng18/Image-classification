@@ -21,12 +21,12 @@ class TrainDataset(Dataset):
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
         ])
-        assert phase in ['train', 'eval']
+        assert phase in ['train', 'eval', 'all']
         self.phase = phase
         self.img_data = np.load(os.path.join(data_root, 'train.npy'))
         if data_type == 'coarse':
             num_ins = 2500
-            train_num = 2250
+            train_num = 2250 if self.phase == 'train' or self.phase == 'eval' else 2500
             self.anno = pd.read_csv(os.path.join(data_root, 'train1.csv'))
             label_all = np.array(self.anno['coarse_label'])
             img_id_all = np.array(self.anno['image_id'])
@@ -36,7 +36,7 @@ class TrainDataset(Dataset):
             self.img_id = []
             self.label_id = []
             for i in range(len(label_all) // num_ins):
-                if self.phase == 'train':
+                if self.phase == 'train' or phase == 'all':
                     self.img_id.append(img_id_sorted[num_ins * i:num_ins * i + train_num])
                     self.label_id.append(label_sorted[num_ins * i:num_ins * i + train_num])
                 else:
@@ -47,7 +47,7 @@ class TrainDataset(Dataset):
         else:
             assert data_type == 'fine'
             num_ins = 500
-            train_num = 450
+            train_num = 450 if self.phase == 'train' or self.phase == 'eval' else 500
             self.anno = pd.read_csv(os.path.join(data_root, 'train2.csv'))
             label_all = np.array(self.anno['fine_label'])
             img_id_all = np.array(self.anno['image_id'])
@@ -57,7 +57,7 @@ class TrainDataset(Dataset):
             self.img_id = []
             self.label_id = []
             for i in range(len(label_all) // num_ins):
-                if self.phase == 'train':
+                if self.phase == 'train' or self.phase == 'all':
                     self.img_id.append(img_id_sorted[num_ins * i:num_ins * i + train_num])
                     self.label_id.append(label_sorted[num_ins * i:num_ins * i + train_num])
                 else:
@@ -98,7 +98,7 @@ class TestDataset(Dataset):
 
 
 class TrainPairDataset(Dataset):
-    def __init__(self, data_root='dataset/', data_type='coarse'):
+    def __init__(self, data_root='dataset/', data_type='coarse', use_all_data=False):
         self.size = 32
         # self.resize_width, self.resize_height = 40, 40
         self.data_root = data_root
@@ -113,7 +113,7 @@ class TrainPairDataset(Dataset):
         self.img_data = np.load(os.path.join(data_root, 'train.npy'))
         if data_type == 'coarse':
             num_ins = 2500
-            self.train_num = 2250
+            self.train_num = 2250 if not use_all_data else 2500
             self.anno = pd.read_csv(os.path.join(data_root, 'train1.csv'))
             label_all = np.array(self.anno['coarse_label'])
             img_id_all = np.array(self.anno['image_id'])
@@ -130,7 +130,7 @@ class TrainPairDataset(Dataset):
         else:
             assert data_type == 'fine'
             num_ins = 500
-            self.train_num = 450
+            self.train_num = 450 if not use_all_data else 500
             self.anno = pd.read_csv(os.path.join(data_root, 'train2.csv'))
             label_all = np.array(self.anno['fine_label'])
             img_id_all = np.array(self.anno['image_id'])

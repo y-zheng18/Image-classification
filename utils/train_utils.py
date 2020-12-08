@@ -113,36 +113,3 @@ class TripletLoss(torch.nn.Module):
         return cos
 
 
-class TripletL2Loss(torch.nn.Module):
-    def __init__(self):
-        super(TripletL2Loss, self).__init__()
-
-    def forward(self, anchor_feats, postive_feats, labels, hardest=True):
-        """
-            Inputs:
-            - sp: similarity between postive samples, shape (batchsize)
-            - sn: similarity between negative samples, shape (batchsize)
-            Output:
-            - triplet loss
-        """
-        negative_feats = self.get_nagetive(anchor_feats, labels, hardest)
-        sn = torch.norm(anchor_feats - negative_feats)
-        sp = torch.norm(anchor_feats - postive_feats)
-        loss = torch.mean(sp - sn)
-        return loss
-
-    def get_nagetive(self, features, labels, hardest=True):
-        bs, dim = features.shape
-        f2 = features ** 2
-        adjacent = torch.sum(f2.reshape((bs, 1, dim)) + f2.reshape((1, bs, dim)), dim=2) \
-                   - 2 * torch.matmul(features, features.transpose(1, 0))
-        # print(adjacent[0, 1], torch.norm(features[0] - features[1]))
-        for i in range(bs):
-            pair_index = (labels == labels[i])
-            adjacent[i, pair_index] = 1e15
-        negative_index = torch.argmin(adjacent, dim=1)  # hardest negative sample
-        # assert torch.sum(negative_index == torch.arange(0, bs)) == 0
-        negative_feats = features[negative_index]
-
-        return negative_feats
-
