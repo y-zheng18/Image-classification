@@ -127,15 +127,16 @@ class TripletL2Loss(torch.nn.Module):
         """
         negative_feats = self.get_nagetive(anchor_feats, labels, hardest)
         sn = torch.norm(anchor_feats - negative_feats)
-        sp = torch.norm(anchor_feats- postive_feats)
+        sp = torch.norm(anchor_feats - postive_feats)
         loss = torch.mean(sp - sn)
         return loss
 
     def get_nagetive(self, features, labels, hardest=True):
-        bs = features.shape[0]
-        adjacent = (features ** 2).unsqueeze(2) + (features ** 2).unsqueeze(1) \
-                   - 2 * torch.matmul(features, features.transpose(1, 0)).unsqueeze(2)
-        print(adjacent.shape)
+        bs, dim = features.shape
+        f2 = features ** 2
+        adjacent = torch.sum(f2.reshape((bs, 1, dim)) + f2.reshape((1, bs, dim)), dim=2) \
+                   - 2 * torch.matmul(features, features.transpose(1, 0))
+        # print(adjacent[0, 1], torch.norm(features[0] - features[1]))
         for i in range(bs):
             pair_index = (labels == labels[i])
             adjacent[i, pair_index] = 1e15
@@ -145,7 +146,3 @@ class TripletL2Loss(torch.nn.Module):
 
         return negative_feats
 
-
-
-
-x = torch.randn()

@@ -115,9 +115,9 @@ def train(opt):
 
         ## evaluating ......
         print('evaluating......')
-        eval_acc, anchor_list = eval_metrics(auto_encoder,
+        eval_acc, eval_acc_cls, anchor_list = eval_metrics(auto_encoder,
                                              num_classes, train_dataloader, eval_dataloader, use_gpu)
-        print('eval_acc:', eval_acc)
+        print('eval_acc: {}, eval_cls_acc:{}'.format(eval_acc, eval_acc_cls))
         if best_acc < eval_acc:
             best_acc = eval_acc
             best_epoch = epoch
@@ -128,24 +128,25 @@ def train(opt):
             test_label_pred = test_metrics(auto_encoder, anchor_list, test_dataloader, use_gpu)
             if opt.data_type == 'coarse':
                 save_results(test_label_pred, opt.data_type, opt.result_path,
-                             '1_{}_{}.csv'.format(opt.model, opt.optim_policy))
+                             '1_{}_{}.csv'.format(opt.model, "metrics"))
             else:
                 save_results(test_label_pred, opt.data_type, opt.result_path,
-                             '2_{}_{}.csv'.format(opt.model, opt.optim_policy))
+                             '2_{}_{}.csv'.format(opt.model, "metrics"))
+            if num_classes == 100:
+                print('cifar100:', test_cifar100(auto_encoder, anchor_list, use_gpu))
         print('epoch:{0:}, lr:{1:6f}, loss:{2:4f}, tri:{3:3f}, cls:{4:3f}, rec:{5:3f}, test_acc:{6:4f}, '
               'best_acc:{7:4f}, best_epoch{8:}'.format(
             epoch, optimizer.param_groups[0]['lr'], np.mean(loss_list), np.mean(triplet_loss_list),
             np.mean(cls_loss_list), np.mean(rec_loss_list),
             eval_acc, best_acc, best_epoch
         ))
-        if num_classes == 100:
-            print('cifar100:', test_cifar100(auto_encoder, anchor_list, use_gpu))
         optim_lr_schedule.step()
 
 
 def eval_metrics(auto_encoder, num_classes, train_data, eval_data, use_gpu=False):
     auto_encoder.eval()
     pred_list = []
+    pred_cls_list = []
     gt_list = []
     anchor_list = []
     for i in range(num_classes):
@@ -172,15 +173,19 @@ def eval_metrics(auto_encoder, num_classes, train_data, eval_data, use_gpu=False
         for img, label in tqdm(eval_data, ncols=100):
             if use_gpu:
                 img = img.cuda()
-            embeddings, _, _, _ = auto_encoder(img)
+            embeddings, _, _, pred_cls = auto_encoder(img)
+            _, predicted_cls_label = torch.max(pred_cls, dim=1)
+            pred_cls_list.append(predicted_cls_label.cpu().numpy())
             cos_distance = torch.mm(embeddings, anchor_list.permute((1, 0)))
             _, predicted_label = torch.max(cos_distance, dim=1)
             gt_list.append(label.numpy())
             pred_list.append(predicted_label.cpu().numpy())
         gt_list = np.concatenate(gt_list, axis=0)
         pred_list = np.concatenate(pred_list, axis=0)
+        pred_cls_list = np.concatenate(pred_cls_list, axis=0)
         eval_acc = np.sum(pred_list == gt_list) / len(gt_list)
-    return eval_acc, anchor_list
+        eval_acc_cls = np.sum(pred_cls_list == gt_list) / len(gt_list)
+    return eval_acc, eval_acc_cls, anchor_list
 
 
 def test_metrics(auto_encoder, anchor_list, test_dataloader, use_gpu):

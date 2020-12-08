@@ -65,7 +65,7 @@ def test_metrics(opt):
             similarity_sum = torch.sum(cos_distance, dim=1)
             # print(similarity_sum.shape)
             _, max_idx = torch.max(similarity_sum, dim=0)
-            anchor_list[i] = feats[max_idx].unsqueeze(0)
+            anchor_list[i] = feats[0].unsqueeze(0)
         anchor_list = torch.cat(anchor_list, dim=0)
         print('evaluating......')
         for img, label in tqdm(eval_dataloader, ncols=100):

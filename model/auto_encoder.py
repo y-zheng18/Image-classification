@@ -26,7 +26,7 @@ class AutoEnocder(nn.Module):
             nn.Linear(embedding_size * 2, in_planes)
         )
         self.classifier = nn.Sequential(
-            nn.BatchNorm1d(embedding_size),
+            nn.Linear(embedding_size, embedding_size),
             nn.PReLU(),
             nn.Linear(embedding_size, num_classes),
         )
