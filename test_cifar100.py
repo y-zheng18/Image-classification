@@ -31,7 +31,7 @@ def test_metrics(opt):
         model = ResNet(layers=opt.layers, num_classes=num_classes,
                        dropout_rate=opt.dropout_rate)
     elif opt.model == 'wide_resnet':
-        model = WideResNet(layers=opt.layers, num_classes=num_classes,
+        model = WideResNet(layers=opt.layers, factor=opt.wide_factor, num_classes=num_classes,
                            dropout_rate=opt.dropout_rate)
     elif opt.model == 'multi-res':
         model = MultiResNet(layers=opt.layers, num_classes=num_classes, dropout_rate=opt.dropout_rate)
