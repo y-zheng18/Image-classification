@@ -11,12 +11,12 @@ from PIL import Image
 class TrainDataset(Dataset):
     def __init__(self, data_root='dataset/', data_type='coarse', phase='train'):
         self.size = 32
-        # self.resize_width, self.resize_height = 40, 40
+        self.resize_width, self.resize_height = 40, 40
         self.data_root = data_root
 
         self.transform = transforms.Compose([
-            # transforms.Resize((self.resize_width, self.resize_height)),
-            transforms.RandomCrop(self.size, padding=4),
+            transforms.Resize((self.resize_width, self.resize_height)),
+            transforms.RandomCrop(self.size),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
@@ -100,12 +100,12 @@ class TestDataset(Dataset):
 class TrainPairDataset(Dataset):
     def __init__(self, data_root='dataset/', data_type='coarse', use_all_data=False):
         self.size = 32
-        # self.resize_width, self.resize_height = 40, 40
+        self.resize_width, self.resize_height = 40, 40
         self.data_root = data_root
 
         self.transform = transforms.Compose([
-            # transforms.Resize((self.resize_width, self.resize_height)),
-            transforms.RandomCrop(self.size, padding=4),
+            transforms.Resize((self.resize_width, self.resize_height)),
+            transforms.RandomCrop(self.size),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
