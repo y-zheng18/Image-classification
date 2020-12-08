@@ -66,7 +66,7 @@ def train(opt):
     if opt.load_model_dir is not None:
         load(backbone_model, opt.load_model_dir)
     if opt.load_autoencoder_dir is not None:
-        load(auto_encoder, opt.load_model_dir)
+        load(auto_encoder, opt.load_autoencoder_dir)
     if opt.load_optim_dir is not None:
         load(optimizer, opt.load_optim_dir)
     CLS_loss = nn.CrossEntropyLoss()
