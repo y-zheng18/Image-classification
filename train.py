@@ -36,7 +36,11 @@ def train(opt):
     elif opt.model == 'wide_resnext':
         model = WideResNext(layers=opt.layers, factor=opt.wide_factor, groups=32, num_classes=20 if opt.data_type == 'coarse' else 100)
     elif opt.model == 'resnet_pretrained':
-        model = models.wide_resnet50_2(pretrained=True, num_classes=20 if opt.data_type == 'coarse' else 100)
+        model = models.resnet152(pretrained=True)
+        model.fc = nn.Linear(model.fc.in_features, 20 if opt.data_type == 'coarse' else 100)
+    elif opt.model == 'wideresnet_pretrained':
+        model = models.wide_resnet50_2(pretrained=True)
+        model.fc = nn.Linear(model.fc.in_features, 20 if opt.data_type == 'coarse' else 100)
     else:
         raise NotImplemented
     # print(model)
