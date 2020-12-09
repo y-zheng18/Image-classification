@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from dataset import TrainDataset
 import torch.optim.lr_scheduler as lr_scheduler
 from tqdm import tqdm
+import torchvision.models as models
 from utils.options import get_args
 from utils.train_utils import *
 from dataset import *
@@ -34,6 +35,8 @@ def train(opt):
         model = MultiResNet(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     elif opt.model == 'wide_resnext':
         model = WideResNext(layers=opt.layers, factor=opt.wide_factor, groups=32, num_classes=20 if opt.data_type == 'coarse' else 100)
+    elif opt.model == 'resnet_pretrained':
+        model = models.wide_resnet50_2(pretrained=True, num_classes=20 if opt.data_type == 'coarse' else 100)
     else:
         raise NotImplemented
     # print(model)
@@ -66,6 +69,7 @@ def train(opt):
 
     best_acc = 0
     best_epoch = 0
+    loss_list = []
     for epoch in range(opt.epoch_resume, opt.epoch):
         model.train()
         loss_list = []
@@ -124,7 +128,8 @@ def train(opt):
         if len(opt.gpu_ids) > 1:
             model = DataParallel(model, device_ids=opt.gpu_ids)
         optim_lr_schedule.step()
-
+        loss_list.append(np.mean(loss_list))
+    np.save(os.path.join(result_path, 'loss_{}_{}.npy'.format(opt.model, opt.data_type)), np.array(loss_list))
 
 def test_cifar100(model, anchor_list, use_gpu):
     model.eval()

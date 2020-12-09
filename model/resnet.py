@@ -305,7 +305,7 @@ if __name__ == '__main__':
     from torchvision.models import resnet, resnext101_32x8d, ResNet
     import torchvision.models as models
     resnet18 = resnet.resnet50(num_classes=20)
-    print(resnet18, models.resnext50_32x4d(num_classes=20))
+    print(models.wide_resnet101_2(num_classes=20), models.resnet101())
 
     # torch.save(net.state_dict(), 'test_resnet.pth')
     # torch.save(resnet18.state_dict(), 'official_resnet.pth')

@@ -15,8 +15,8 @@ class TrainDataset(Dataset):
         self.data_root = data_root
 
         self.transform = transforms.Compose([
-            transforms.Resize((self.resize_width, self.resize_height)),
-            transforms.RandomCrop(self.size),
+            # transforms.Resize((self.resize_width, self.resize_height)),
+            transforms.RandomCrop(self.size, padding=4),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
