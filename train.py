@@ -135,12 +135,14 @@ def train(opt):
         loss_list.append(np.mean(loss_list))
     np.save(os.path.join(result_path, 'loss_{}_{}.npy'.format(opt.model, opt.data_type)), np.array(loss_list))
 
-def test_cifar100(model, anchor_list, use_gpu):
+def test_cifar100(model, eval_data, use_gpu):
     model.eval()
     pred_list = []
     gt_list = []
+    size = eval_data.dataset.size
     test_dataloader = DataLoader(
         datasets.CIFAR100(root='./cifar100', train=False, download=True, transform=transforms.Compose([
+            transforms.Resize((size, size)),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])),
