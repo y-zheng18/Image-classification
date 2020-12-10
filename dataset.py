@@ -10,7 +10,7 @@ from PIL import Image
 
 class TrainDataset(Dataset):
     def __init__(self, data_root='dataset/', data_type='coarse', phase='train', pretrained=False):
-        self.size = 32
+        self.size = 32 if not pretrained else 224
         self.resize_width, self.resize_height = 40, 40
         self.data_root = data_root
 
@@ -78,8 +78,8 @@ class TrainDataset(Dataset):
         return img, label
 
 class TestDataset(Dataset):
-    def __init__(self, data_root='dataset/'):
-        self.size = 32
+    def __init__(self, data_root='dataset/', pretrained=False):
+        self.size = 32 if not pretrained else 224
         self.data_root = data_root
         self.transform = transforms.Compose([
             transforms.ToTensor(),

@@ -17,6 +17,7 @@ def get_args():
     parser.add_argument('--load_optim_dir', type=str, default=None)
 
     parser.add_argument('--model', type=str, default='resnet')
+    parser.add_argument('--pretrained', default=False, action='store_true')
     parser.add_argument('--embedding_size', type=int, default=1024)
     parser.add_argument('--layers', type=int, default=[2, 2, 2, 2], nargs='+')
     parser.add_argument('--wide_factor', type=int, default=10)

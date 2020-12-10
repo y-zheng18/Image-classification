@@ -19,9 +19,9 @@ def train(opt):
     print(opt)
     use_gpu = torch.cuda.is_available()
     print("use_gpu:", use_gpu)
-    train_dataset = TrainDataset(opt.dataroot, opt.data_type, phase='train' if not opt.use_all_data else 'all')
-    eval_dataset = TrainDataset(opt.dataroot, opt.data_type, phase='eval')
-    test_dataset = TestDataset(opt.dataroot)
+    train_dataset = TrainDataset(opt.dataroot, opt.data_type, phase='train' if not opt.use_all_data else 'all', pretrained=opt.pretrained)
+    eval_dataset = TrainDataset(opt.dataroot, opt.data_type, phase='eval', pretrained=opt.pretrained)
+    test_dataset = TestDataset(opt.dataroot, pretrained=opt.pretrained)
 
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=opt.bs, num_workers=0, shuffle=True)
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=0, shuffle=False)
