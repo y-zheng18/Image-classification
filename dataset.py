@@ -15,7 +15,7 @@ class TrainDataset(Dataset):
         self.data_root = data_root
 
         self.transform = transforms.Compose([
-            #transforms.Resize((self.resize_width, self.resize_height)),
+            transforms.Resize((self.size, self.size)),
             #transforms.RandomRotation(30),
             transforms.RandomCrop(self.size, padding=4),
             transforms.RandomHorizontalFlip(p=0.5),
@@ -82,6 +82,7 @@ class TestDataset(Dataset):
         self.size = 32 if not pretrained else 224
         self.data_root = data_root
         self.transform = transforms.Compose([
+            transforms.Resize((self.size, self.size)),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
         ])
@@ -167,12 +168,12 @@ class TrainPairDataset(Dataset):
 
 
 if __name__ == "__main__":
-    dataset = TrainPairDataset(data_type='coarse')
+    dataset = TrainDataset(data_type='coarse', pretrained=True)
     print(len(dataset))
     d = TrainDataset(data_type='coarse', phase='eval')
     print(d.img_id, 29621 in d.img_id)
     dataloader = DataLoader(dataset=dataset, batch_size=128, num_workers=0, shuffle=True)
-    for img, _, label in dataloader:
+    for img, label in dataloader:
         print(img.shape, label)
 
 # vim: ts=4 sw=4 sts=4 expandtab
