@@ -5,6 +5,8 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
+import matplotlib.gridspec as gridspec
+import matplotlib.patches as mpatches
 import os
 
 
@@ -31,18 +33,24 @@ def visualize(model, data, save_path, metrics=False):
     embeddings_2_dim = TSNE(n_components=2).fit_transform(embedding_list)
     print('fitting done!')
     print(embeddings_2_dim.shape)
+    num_classes = np.max(label_list)
+
+    fig = plt.figure(tight_layout=True)
+    gs = gridspec.GridSpec(1, 10)
 
     cmap = cm.Spectral
     norm = Normalize(vmin=0, vmax=np.max(label_list))
     colors = [cmap(norm(i)) for i in label]
-
+    label_names = ['label:{}'.format(i) for i in range(num_classes)]
+    pops = [mpatches.Patch(color=cmap(norm(i)), label=label_names[i]) for i in range(num_classes)]
     modelnet = {'dim0': embeddings_2_dim[:, 0], 'dim1': embeddings_2_dim[:, 1], 'y': label_list} # pd.DataFrame({'dim0': data[:, 0], 'dim1': data[:, 1], 'y': label})
 
-    scatter = plt.scatter(
+    ax = fig.add_subplot(gs[0, 0:8])
+    scatter = ax.scatter(
             x=modelnet["dim0"], y=modelnet["dim1"], c=colors,
             alpha=0.7, edgecolors='none'
             )
-
+    ax.legend(handles=pops, loc='center left', bbox_to_anchor=(1, 0.5), ncol=2, fontsize=5.5)
     plt.savefig(os.path.join(save_path, 'fig_tsne.pdf'))
     plt.show()
 
