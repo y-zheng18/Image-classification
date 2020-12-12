@@ -26,8 +26,10 @@ class ResNet(nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+        self.data_dropout = nn.Dropout(p=0.1)
 
     def forward(self, x, return_feats=False):
+        x = self.data_dropout(x)
         x = self.relu(self.bn1(self.conv1(x)))
         # x = self.maxpool(x)
 

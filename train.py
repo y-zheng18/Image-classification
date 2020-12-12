@@ -73,7 +73,7 @@ def train(opt):
 
     best_acc = 0
     best_epoch = 0
-    loss_list = []
+    save_loss_list = []
     for epoch in range(opt.epoch_resume, opt.epoch):
         model.train()
         loss_list = []
@@ -132,8 +132,8 @@ def train(opt):
         if len(opt.gpu_ids) > 1:
             model = DataParallel(model, device_ids=opt.gpu_ids)
         optim_lr_schedule.step()
-        loss_list.append(np.mean(loss_list))
-    np.save(os.path.join(result_path, 'loss_{}_{}.npy'.format(opt.model, opt.data_type)), np.array(loss_list))
+        save_loss_list.append(np.mean(loss_list))
+    np.save(os.path.join(result_path, 'loss_{}_{}.npy'.format(opt.model, opt.data_type)), np.array(save_loss_list))
 
 def test_cifar100(model, eval_data, use_gpu):
     model.eval()
