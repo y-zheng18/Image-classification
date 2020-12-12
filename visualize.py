@@ -40,14 +40,14 @@ def visualize(model, data, save_path, metrics=False):
 
     cmap = cm.Spectral
     norm = Normalize(vmin=0, vmax=np.max(label_list))
-    colors = [cmap(norm(i)) for i in label]
+    colors = [cmap(norm(i)) for i in label_list]
     label_names = ['label:{}'.format(i) for i in range(num_classes)]
     pops = [mpatches.Patch(color=cmap(norm(i)), label=label_names[i]) for i in range(num_classes)]
     modelnet = {'dim0': embeddings_2_dim[:, 0], 'dim1': embeddings_2_dim[:, 1], 'y': label_list} # pd.DataFrame({'dim0': data[:, 0], 'dim1': data[:, 1], 'y': label})
 
     ax = fig.add_subplot(gs[0, 0:8])
     scatter = ax.scatter(
-            x=modelnet["dim0"], y=modelnet["dim1"], c=colors,
+            x=modelnet["dim0"], y=modelnet["dim1"], c=colors, s = 10,
             alpha=0.7, edgecolors='none'
             )
     ax.legend(handles=pops, loc='center left', bbox_to_anchor=(1, 0.5), ncol=2, fontsize=5.5)
