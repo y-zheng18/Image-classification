@@ -13,8 +13,10 @@ def visualize(model, data, save_path, metrics=False):
     label_list = []
     model.eval()
     use_gpu = torch.cuda.is_available()
+    if use_gpu:
+        model = model.cuda()
     with torch.no_grad():
-        for img, label in tqdm(data):
+        for img, label in tqdm(data, ncols=100):
             if use_gpu:
                 img = img.cuda()
             if metrics:
@@ -88,4 +90,4 @@ if __name__ == '__main__':
         load(model, opt.load_autoencoder_dir)
     else:
         load(model, opt.load_model_dir)
-    visualize(model, eval_dataset, save_path=opt.result_path, metrics=opt.use_triplet)
+    visualize(model, eval_dataloader, save_path=opt.result_path, metrics=opt.use_triplet)
