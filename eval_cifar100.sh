@@ -1,2 +1,2 @@
-python evalution.py --data_type fine --gpu 0 \
+python evaluation.py --data_type fine --gpu 0 \
 --load_model_dir chkpoints/wide_resnet_fine_40_10.pth --model wide_resnet --layers 6 6 6 --wide_factor 10
