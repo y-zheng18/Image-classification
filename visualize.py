@@ -55,6 +55,17 @@ def visualize(model, data, save_path, phase='train', metrics=False):
     plt.show()
 
 
+def draw_loss(coarse_loss_file, fine_loss_file, save_path):
+    coarse = np.load(coarse_loss_file)
+    fine = np.load(fine_loss_file)
+    plt.ylim((0, 10000))
+    plt.plot(np.arange(200), coarse, color='r', label='loss of coarse prediction')
+    plt.plot(np.arange(200), fine, color='b', label='loss of fine prediction')
+    plt.legend()
+    plt.savefig(os.path.join(save_path, 'loss.png'))
+    plt.show()
+
+
 if __name__ == '__main__':
     from utils.options import *
     from utils.train_utils import *
@@ -67,6 +78,8 @@ if __name__ == '__main__':
     if len(opt.gpu_ids) == 1:
         os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
     print(opt)
+    draw_loss('results', 'results', opt.result_path)
+
     use_gpu = torch.cuda.is_available()
     print("use_gpu:", use_gpu)
     train_dataset = TrainDataset(opt.dataroot, opt.data_type, phase='train' if not opt.use_all_data else 'all', pretrained=opt.pretrained)
