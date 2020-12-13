@@ -23,16 +23,16 @@ def train(opt):
     eval_dataset = TrainDataset(opt.dataroot, opt.data_type, phase='eval', pretrained=opt.pretrained)
     test_dataset = TestDataset(opt.dataroot, pretrained=opt.pretrained)
 
-    train_dataloader = DataLoader(dataset=train_dataset, batch_size=opt.bs, num_workers=0, shuffle=True)
-    eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=0, shuffle=False)
-    test_dataloader = DataLoader(dataset=test_dataset, batch_size=128, num_workers=0, shuffle=False)
+    train_dataloader = DataLoader(dataset=train_dataset, batch_size=opt.bs, num_workers=opt.num_workers, shuffle=True)
+    eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=128, num_workers=opt.num_workers, shuffle=False)
+    test_dataloader = DataLoader(dataset=test_dataset, batch_size=128, num_workers=opt.num_workers, shuffle=False)
 
     if opt.model == 'resnet':
         model = ResNet(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     elif opt.model == 'wide_resnet':
         model = WideResNet(layers=opt.layers, factor=opt.wide_factor, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     elif opt.model == 'multi-res':
-        model = MultiResNet(layers=opt.layers, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
+        model = MultiWideResNet(layers=opt.layers, factor=opt.wide_factor, num_classes=20 if opt.data_type == 'coarse' else 100, dropout_rate=opt.dropout_rate)
     elif opt.model == 'wide_resnext':
         model = WideResNext(layers=opt.layers, factor=opt.wide_factor, groups=32, num_classes=20 if opt.data_type == 'coarse' else 100)
     elif opt.model == 'resnet_pretrained':

@@ -10,7 +10,7 @@ import matplotlib.patches as mpatches
 import os
 
 
-def visualize(model, data, save_path, metrics=False):
+def visualize(model, data, save_path, phase='train', metrics=False):
     embedding_list = []
     label_list = []
     model.eval()
@@ -33,7 +33,7 @@ def visualize(model, data, save_path, metrics=False):
     embeddings_2_dim = TSNE(n_components=2).fit_transform(embedding_list)
     print('fitting done!')
     print(embeddings_2_dim.shape)
-    num_classes = np.max(label_list)
+    num_classes = np.max(label_list) + 1
 
     fig = plt.figure(tight_layout=True)
     gs = gridspec.GridSpec(1, 10)
@@ -41,17 +41,17 @@ def visualize(model, data, save_path, metrics=False):
     cmap = cm.Spectral
     norm = Normalize(vmin=0, vmax=np.max(label_list))
     colors = [cmap(norm(i)) for i in label_list]
-    label_names = ['label:{}'.format(i) for i in range(num_classes)]
+    label_names = ['{}'.format(i) for i in range(num_classes)]
     pops = [mpatches.Patch(color=cmap(norm(i)), label=label_names[i]) for i in range(num_classes)]
     modelnet = {'dim0': embeddings_2_dim[:, 0], 'dim1': embeddings_2_dim[:, 1], 'y': label_list} # pd.DataFrame({'dim0': data[:, 0], 'dim1': data[:, 1], 'y': label})
 
-    ax = fig.add_subplot(gs[0, 0:8])
+    ax = fig.add_subplot(gs[0, 0:9])
     scatter = ax.scatter(
-            x=modelnet["dim0"], y=modelnet["dim1"], c=colors, s = 10,
+            x=modelnet["dim0"], y=modelnet["dim1"], c=colors, s=10,
             alpha=0.7, edgecolors='none'
             )
-    ax.legend(handles=pops, loc='center left', bbox_to_anchor=(1, 0.5), ncol=2, fontsize=5.5)
-    plt.savefig(os.path.join(save_path, 'fig_tsne.pdf'))
+    ax.legend(handles=pops, loc='center left', bbox_to_anchor=(1, 0.5), ncol=1, fontsize=7)
+    plt.savefig(os.path.join(save_path, phase + 'fig_tsne.png'), dpi=1200)
     plt.show()
 
 
@@ -85,10 +85,10 @@ if __name__ == '__main__':
     elif opt.model == 'wide_resnext':
         model = WideResNext(layers=opt.layers, factor=opt.wide_factor, groups=32, num_classes=num_classes)
     elif opt.model == 'resnet_pretrained':
-        model = models.resnet152(pretrained=True)
+        model = models.resnet152()
         model.fc = nn.Linear(model.fc.in_features, num_classes)
     elif opt.model == 'wideresnet_pretrained':
-        model = models.wide_resnet50_2(pretrained=True)
+        model = models.wide_resnet101_2()
         model.fc = nn.Linear(model.fc.in_features, num_classes)
     else:
         raise NotImplemented
@@ -98,4 +98,4 @@ if __name__ == '__main__':
         load(model, opt.load_autoencoder_dir)
     else:
         load(model, opt.load_model_dir)
-    visualize(model, eval_dataloader, save_path=opt.result_path, metrics=opt.use_triplet)
+    visualize(model, train_dataloader, phase='train', save_path=opt.result_path, metrics=opt.use_triplet)

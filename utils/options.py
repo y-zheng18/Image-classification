@@ -7,6 +7,7 @@ def get_args():
     parser.add_argument('--gpu_ids', type=int, default=[0], nargs='+')
 
     parser.add_argument('--bs', type=int, default=128)
+    parser.add_argument('--num_workers', type=int, default=0)
     parser.add_argument('--dataroot', type=str, default='dataset/')
     parser.add_argument('--use_all_data', default=False, action='store_true')
     parser.add_argument('--data_type', type=str, default='coarse', choices=['coarse', 'fine'])
