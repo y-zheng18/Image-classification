@@ -40,16 +40,8 @@ The models are trained with 200 epoch and 0.2 learning rate decay ratio of 60, 1
 
 * Loss and accuracy curves:
 
-![loss](img\loss.png)
-
-![acc](img\acc.png)
+![loss](img\curve.png)
 
 * Visualization with t-SNE
 
-  Training dataset
-
-<img src="img\trainfig_tsne.png" alt="trainfig_tsne" style="zoom: 25%;" />
-
-​		Validation dataset:
-
-![evalfig_tsne](img\evalfig_tsne.png)
+  ![visualization](img\visualization.png)
