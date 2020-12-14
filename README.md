@@ -34,7 +34,7 @@ The models are trained with 200 epoch and 0.2 learning rate decay ratio of 60, 1
 
 * Top1 and Top5 accuracy:
 
-<img src="img/T1_T5acc.png" alt="acc" style="zoom: 20%;" />
+<img src="img/T1_T5acc.png" alt="acc" style="zoom: 40%;" />
 
 ​	Pretrained, A BIG WIN!
 
