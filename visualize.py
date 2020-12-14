@@ -66,6 +66,18 @@ def draw_loss(coarse_loss_file, fine_loss_file, save_path):
     plt.show()
 
 
+def draw_acc(coarse_acc_file, fine_acc_file, save_path):
+    coarse = np.load(coarse_acc_file)
+    fine = np.load(fine_acc_file)
+    #plt.ylim((0, 10000))
+    plt.plot(np.arange(200), coarse, color='r', label='acc of coarse prediction')
+    plt.plot(np.arange(200), fine, color='b', label='acc of fine prediction')
+    plt.legend()
+    plt.savefig(os.path.join(save_path, 'acc.png'))
+    plt.show()
+
+
+
 if __name__ == '__main__':
     from utils.options import *
     from utils.train_utils import *
@@ -78,7 +90,8 @@ if __name__ == '__main__':
     if len(opt.gpu_ids) == 1:
         os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
     print(opt)
-    draw_loss('results/loss_wide_resnet_coarse.npy', 'results/loss_wide_resnet_fine.npy', opt.result_path)
+    draw_acc('acc_loss/acc_multi-res_coarse.npy', 'acc_loss/acc_multi-res_fine.npy', opt.result_path)
+    draw_loss('acc_loss/loss_multi-res_coarse.npy', 'acc_loss/loss_multi-res_fine.npy', opt.result_path)
 
     use_gpu = torch.cuda.is_available()
     print("use_gpu:", use_gpu)

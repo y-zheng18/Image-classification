@@ -53,9 +53,7 @@ if __name__ == '__main__':
     elif opt.model == 'wide_resnet':
         model = WideResNet(layers=opt.layers, factor=opt.wide_factor, num_classes=num_classes, dropout_rate=opt.dropout_rate)
     elif opt.model == 'multi-res':
-        model = MultiResNet(layers=opt.layers, num_classes=num_classes, dropout_rate=opt.dropout_rate)
-    elif opt.model == 'wide_resnext':
-        model = WideResNext(layers=opt.layers, factor=opt.wide_factor, groups=32, num_classes=num_classes)
+        model = MultiWideResNet(layers=opt.layers, num_classes=num_classes, dropout_rate=opt.dropout_rate)
     elif opt.model == 'resnet_pretrained':
         model = models.resnet152()
         model.fc = nn.Linear(model.fc.in_features, num_classes)

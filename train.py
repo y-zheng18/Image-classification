@@ -108,10 +108,7 @@ def train(opt):
         train_acc = np.sum(pred_list == gt_list) / len(gt_list)
         if len(opt.gpu_ids) > 1:
             model = model.module
-        if opt.use_all_data and opt.data_type == 'fine':
-            acc = test_cifar100(model, eval_dataloader, use_gpu)
-        else:
-            acc = eval(model, eval_dataloader, use_gpu)
+        acc = eval(model, eval_dataloader, use_gpu)
         if best_acc < acc:
             best_acc = acc
             best_epoch = epoch
@@ -137,32 +134,6 @@ def train(opt):
         save_acc_list.append(acc)
     np.save(os.path.join(result_path, 'loss_{}_{}.npy'.format(opt.model, opt.data_type)), np.array(save_loss_list))
     np.save(os.path.join(result_path, 'acc_{}_{}.npy'.format(opt.model, opt.data_type)), np.array(save_acc_list))
-
-def test_cifar100(model, eval_data, use_gpu):
-    model.eval()
-    pred_list = []
-    gt_list = []
-    size = eval_data.dataset.size
-    test_dataloader = DataLoader(
-        datasets.CIFAR100(root='./cifar100', train=False, download=True, transform=transforms.Compose([
-            transforms.Resize((size, size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-        ])),
-        batch_size=128, shuffle=False,
-        num_workers=0, pin_memory=True)
-    with torch.no_grad():
-        for img, label in tqdm(test_dataloader, ncols=100):
-            if use_gpu:
-                img = img.cuda()
-            predicted = model(img)
-            _, predicted_label = torch.max(predicted, dim=1)
-            gt_list.append(label)
-            pred_list.append(predicted_label.cpu().numpy())
-        gt_list = np.concatenate(gt_list, axis=0)
-        pred_list = np.concatenate(pred_list, axis=0)
-        acc = np.sum(pred_list == gt_list) / len(gt_list)
-    return acc
 
 
 if __name__ == "__main__":
