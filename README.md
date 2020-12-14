@@ -30,7 +30,7 @@ bash eval.sh
 
 ## Results
 
-The models are trained with 200 epoch and 0.2 learning rate decay ratio of 60, 120, 160 epoch. For pretrained models on ImageNet, traing process is set to 30 epoch with 0.001 lr. Top1 and Top5 are provided.
+The models are trained with 200 epoch and 0.2 learning rate decay ratio of 60, 120, 160 epoch. For pretrained models on ImageNet, training process is set to 30 epoch with 0.001 lr. Top1 and Top5 are provided.
 
 * Top1 and Top5 accuracy:
 
