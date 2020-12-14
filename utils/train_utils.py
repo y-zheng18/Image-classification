@@ -51,7 +51,7 @@ def save_model(model, save_root, save_name):
 def save_results(pred_label, data_type, save_root, save_name):
     os.makedirs(save_root, exist_ok=True)
     data = np.array([np.arange(len(pred_label)), pred_label]).T
-    data = pd.DataFrame(data, columns=["image_id", data_type])
+    data = pd.DataFrame(data, columns=["image_id", data_type+'_label'])
     data.to_csv(os.path.join(save_root, save_name), index=False)
 
 
