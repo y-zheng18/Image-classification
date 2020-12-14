@@ -34,14 +34,14 @@ The models are trained with 200 epoch and 0.2 learning rate decay ratio of 60, 1
 
 * Top1 and Top5 accuracy:
 
-![acc](img/T1_T5acc.png)
+<img src="img/T1_T5acc.png" alt="acc" style="zoom: 40%;" />
 
 ​	Pretrained, A BIG WIN!
 
 * Loss and accuracy curves:
 
-![loss](img/curve.png)
+<img src="img/curve.png" alt="loss" style="zoom:50%;" />
 
 * Visualization with t-SNE
 
-  ![visualization](img/visualization.png)
+  <img src="img/visualization.png" alt="visualization" style="zoom:40%;" />
