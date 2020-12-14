@@ -176,4 +176,3 @@ if __name__ == "__main__":
     for img, label in dataloader:
         print(img.shape, label)
 
-# vim: ts=4 sw=4 sts=4 expandtab
